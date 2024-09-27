@@ -8,6 +8,7 @@ project(
 )
 
 find_package(GTest REQUIRED)
+# find_package(rlibm REQUIRED)
 
 # set(CMAKE_VERBOSE_MAKEFILE ON) 
 set(CMAKE_BUILD_TYPE "Release")
@@ -25,8 +26,14 @@ add_executable(reproducible_float_tests)
 target_link_libraries(reproducible_float_tests GTest::gtest_main)
 target_sources(reproducible_float_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/reproducible_float_tests.cpp)
 
+
+add_executable(rcmath_tests)
+target_link_libraries(rcmath_tests GTest::gtest_main)
+target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
+
 enable_testing()
 gtest_discover_tests(reproducible_float_tests)
+gtest_discover_tests(rcmath_tests)
 
 #####################################
 
