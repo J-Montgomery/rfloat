@@ -157,14 +157,14 @@ TEST_F(InterfaceTest, test_lhs_rhs_insensitivity) {
     EXPECT_EQ(f1 + rf1, rf1 + f1);
 }
 
-TEST_F(InterfaceTest, test_arithmetic_different_types) {
+TEST_F(InterfaceTest, check_narrowing_detected) {
     rfloat rf1(f1);
     rdouble rd1(d1);
 
     // There's an implicit narrowing conversion that happens here
-    // because we've defined convenience functions. Unfortunately,
-    // there's no way to prevent that narrowing conversion in
-    // the library, so watch out
+    // because we've defined conversions. Unfortunately,
+    // there's no way to detect or warn about that narrowing
+    // with library code, so be careful
     EXPECT_EQ(rf1 + d1, f1 + d1);
     EXPECT_EQ(rd1 + f1, f1 + d1);
 }

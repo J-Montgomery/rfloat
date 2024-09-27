@@ -7,7 +7,7 @@
 #if __cplusplus >= 202302L
 /* Include the stdfloat header if it exists */
 #include <stdfloat>
-#endif
+#endif /* __cplusplus >= 202302L */
 
 // Most compilers don't support this pragma and ignore it, but
 // we're still technically required to set it
@@ -31,7 +31,7 @@
 #define FEATURE_CXX20(expr) expr
 #else
 #define FEATURE_CXX20(expr)
-#endif
+#endif /* __cplusplus >= 202002L */
 
 // Our safety checks are taken care of at the usage site
 #define SAFE_BINOP(result, a, b, op)                                           \
@@ -67,11 +67,11 @@ class NumericWrapper {
                       std::is_same<T, std::float32_t>::value ||
                       std::is_same<T, std::float64_t>::value,
                   "Unsupported floating point type");
-#else /* Pre-C++23 */
+#else  /* Pre-C++23 */
     static_assert(std::is_same<T, float>::value ||
                       std::is_same<T, double>::value,
                   "Unsupported floating point type");
-#endif
+#endif /* __cplusplus >= 202302L */
     static_assert(std::is_floating_point<T>::value,
                   "Non-floating point types are not supported");
     static_assert(std::numeric_limits<T>::is_iec559,
@@ -117,13 +117,13 @@ class NumericWrapper {
     constexpr inline T2 fp16() const {
         return value;
     }
-#endif
+#endif /* __cplusplus >= 202302L */
 
 #if __cplusplus >= 202002L
     constexpr inline auto operator<=>(const NumericWrapper<T, R> &rhs) const {
         return value <=> rhs.value;
     };
-#endif
+#endif /* __cplusplus >= 202002L */
 
     constexpr inline auto operator<(const NumericWrapper<T, R> &rhs) const {
         return value < rhs.value;
@@ -187,7 +187,7 @@ using rdouble = NumericWrapper<double, R>;
 // otherwise pick reasonable defaults
 using rfloat = NumericWrapper<float, rfp::RoundingMode::ToEven>;
 using rdouble = NumericWrapper<double, rfp::RoundingMode::ToEven>;
-#endif
+#endif /* __cplusplus >= 202002L */
 
 // Support expressions with non-reproducible types
 // on the left hand side by converting them to reproducible types
@@ -201,7 +201,7 @@ constexpr inline auto operator<=>(const T &lhs,
                                   const NumericWrapper<T, R> &rhs) {
     return NumericWrapper(lhs) <=> rhs;
 };
-#endif
+#else
 
 // Relational operators
 template <typename T, rfp::RoundingMode R>
@@ -245,6 +245,7 @@ static inline auto operator<(const T &lhs, const NumericWrapper<T, R> &rhs) {
     static_assert(std::numeric_limits<T>::is_iec559);
     return NumericWrapper(lhs) < rhs;
 }
+#endif /* __cplusplus >= 202002L */
 
 // Arithmetic operators
 template <typename T, rfp::RoundingMode R>
