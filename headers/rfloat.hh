@@ -20,9 +20,8 @@
 // they see subsequent lines that can be fused together.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
 #else
-// There's no standard way to define this on other compilers, it
-// becomes a no-op.
-// You're on your own.
+// There's no standard way to define this on other compilers so
+// you're on your own.
 #warning "This compiler may not be supported. Proceed at your own risk."
 #define OPT_BARRIER(param)
 #endif
@@ -190,6 +189,7 @@ template <detail::RoundingMode R = detail::RoundingMode::ToEven>
 using rfloat = ReproducibleWrapper<float, R>;
 template <detail::RoundingMode R = detail::RoundingMode::ToEven>
 using rdouble = ReproducibleWrapper<double, R>;
+using rounding_mode = detail::RoundingMode;
 #else
 // otherwise pick reasonable defaults
 using rfloat = ReproducibleWrapper<float, detail::RoundingMode::ToEven>;

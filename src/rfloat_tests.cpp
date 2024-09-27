@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "../headers/rfloat.hh"
+#include "rfloat.hh"
 
 // Test fixture for NumericWrapper
 class InterfaceTest : public ::testing::Test {
