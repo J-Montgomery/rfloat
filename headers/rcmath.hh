@@ -5,65 +5,42 @@
 
 namespace rmath {
 
+/* These functions are generally reproducible as implemented in
+ * standard libraries
+ */
+
 template <typename T, rounding_mode R>
 constexpr inline ReproducibleWrapper<T, R>
-abs(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::abs(val.value));
+abs(const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::abs(x.value));
 }
 
 template <typename T, rounding_mode R>
 constexpr inline ReproducibleWrapper<T, R>
-sqrt(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::sqrt(val.value));
+fmin(const ReproducibleWrapper<T, R> &x, const ReproducibleWrapper<T, R> &y) {
+    return ReproducibleWrapper<T, R>(std::fmin(x.value, y.value));
 }
 
 template <typename T, rounding_mode R>
 constexpr inline ReproducibleWrapper<T, R>
-log(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::log(val.value));
+fmax(const ReproducibleWrapper<T, R> &x, const ReproducibleWrapper<T, R> &y) {
+    return ReproducibleWrapper<T, R>(std::fmax(x.value, y.value));
+}
+
+/* It'd be better if we could ensure these were being generated as
+ * the appropriate HW instructions and throw an error otherwise
+ */
+template <typename T, rounding_mode R>
+constexpr inline ReproducibleWrapper<T, R>
+sqrt(const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::sqrt(x.value));
 }
 
 template <typename T, rounding_mode R>
 constexpr inline ReproducibleWrapper<T, R>
-log10(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::log10(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-exp(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::exp(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-sin(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::sin(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-cos(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::cos(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-tan(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::tan(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-atan(const ReproducibleWrapper<T, R> &val) {
-    return ReproducibleWrapper<T, R>(std::atan(val.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-atan2(const ReproducibleWrapper<T, R> &val1,
-      const ReproducibleWrapper<T, R> &val2) {
-    return ReproducibleWrapper<T, R>(std::atan2(val1.value, val2.value));
+fma(const ReproducibleWrapper<T, R> &x, const ReproducibleWrapper<T, R> &y,
+    const ReproducibleWrapper<T, R> &z) {
+    return ReproducibleWrapper<T, R>(std::fma(x.value, y.value, z.value));
 }
 
 } // namespace rmath

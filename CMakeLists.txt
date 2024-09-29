@@ -50,6 +50,10 @@ add_executable(rcmath_tests)
 target_link_libraries(rcmath_tests GTest::gtest_main rfloat rlibm m)
 target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
 
+add_executable(gen_test_data)
+target_link_libraries(gen_test_data rfloat)
+target_sources(gen_test_data PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_test_data.cpp)
+
 enable_testing()
 gtest_discover_tests(rfloat_tests)
 gtest_discover_tests(rcmath_tests)
