@@ -187,7 +187,7 @@ TEST_F(InterfaceTest, check_narrowing_detected) {
 
 // This should generate compile errors
 // TEST_F(InterfaceTest, validate_non_iec559) {
-//     NumericWrapper<long double> rd1(f1);
+//     ReproducibleWrapper<long double> rd1(f1);
 
 //     EXPECT_EQ(rd1 + d1, rd1 + d1);
 // }
