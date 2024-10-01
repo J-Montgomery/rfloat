@@ -1,6 +1,6 @@
 #include "testfile_loader.hh"
 #include <iostream>
-#include <rfloat.hh>
+#include <rfloat/rfloat.hh>
 
 int main() {
     try {
