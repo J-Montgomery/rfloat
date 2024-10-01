@@ -1,3 +1,0 @@
-[submodule "rlibm"]
-	path = rlibm
-	url = git@github.com:rutgers-apl/rlibm.git

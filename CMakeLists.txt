@@ -14,25 +14,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g3 -ggdb")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -Wall")
 
-# rlibm
-
-set(RLIBM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rlibm)
-
-set(RLIBM_SRCS
-    ${RLIBM_DIR}/source/float/cosh.cpp
-    ${RLIBM_DIR}/source/float/sinh.cpp
-    ${RLIBM_DIR}/source/float/cospi.cpp
-    ${RLIBM_DIR}/source/float/sinpi.cpp
-    ${RLIBM_DIR}/source/float/log.cpp
-    ${RLIBM_DIR}/source/float/log2.cpp
-    ${RLIBM_DIR}/source/float/log10.cpp
-    ${RLIBM_DIR}/source/float/exp.cpp
-    ${RLIBM_DIR}/source/float/exp10.cpp)
-
-add_library(rlibm)
-target_include_directories(rlibm PUBLIC ${RLIBM_DIR}/include)
-target_sources(rlibm PRIVATE ${RLIBM_SRCS})
-
 # rfloat
 
 file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*.hh)
@@ -47,7 +28,7 @@ target_sources(rfloat_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rfloat_tests
 
 
 add_executable(rcmath_tests)
-target_link_libraries(rcmath_tests GTest::gtest_main rfloat rlibm m)
+target_link_libraries(rcmath_tests GTest::gtest_main rfloat m)
 target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
 
 add_executable(gen_test_data)
