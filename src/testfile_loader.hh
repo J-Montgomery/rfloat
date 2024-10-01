@@ -46,13 +46,13 @@ public:
         file.read(reinterpret_cast<char*>(&endianness), sizeof(endianness));
         bool do_swap = (endianness != 0x01020304);
 
-        size_t storedNumItems;
-        file.read(reinterpret_cast<char*>(&storedNumItems), sizeof(storedNumItems));
+        size_t num_items;
+        file.read(reinterpret_cast<char*>(&num_items), sizeof(num_items));
         if (do_swap) {
-            endian_swap(storedNumItems);
+            num_items = endian_swap(num_items);
         }
 
-        if (storedNumItems != m_record_size) {
+        if (num_items != m_record_size) {
             throw std::runtime_error("Unexpected number of items in file");
         }
 
@@ -62,7 +62,7 @@ public:
                 UnsignedType bits;
                 file.read(reinterpret_cast<char*>(&bits), sizeof(bits));
                 if (do_swap) {
-                    endian_swap(bits);
+                    bits = endian_swap(bits);
                 }
                 item = deserialize_t(bits);
             }
@@ -96,9 +96,34 @@ private:
         return result;
     }
 
+    // Unfortunately C++17 doesn't have std::byteswap
     template<typename U>
-    static void endian_swap(U& value) {
-        char* ptr = reinterpret_cast<char*>(&value);
-        std::reverse(ptr, ptr + sizeof(U));
+    static U endian_swap(U value) {
+        if constexpr (sizeof(T) == 1) {
+            return value;
+        } else if constexpr (sizeof(T) == 2) {
+            return static_cast<T>(((value & 0xFF) << 8) | ((value >> 8) & 0xFF));
+        } else if constexpr (sizeof(T) == 4) {
+            return static_cast<T>(
+                ((value & 0xFF) << 24) |
+                ((value & 0xFF00) << 8) |
+                ((value >> 8) & 0xFF00) |
+                ((value >> 24) & 0xFF)
+            );
+        } else if constexpr (sizeof(T) == 8) {
+            return static_cast<T>(
+                ((value & 0xFF) << 56) |
+                ((value & 0xFF00) << 40) |
+                ((value & 0xFF0000) << 24) |
+                ((value & 0xFF000000) << 8) |
+                ((value >> 8) & 0xFF000000) |
+                ((value >> 24) & 0xFF0000) |
+                ((value >> 40) & 0xFF00) |
+                ((value >> 56) & 0xFF)
+            );
+        } else {
+            static_assert(sizeof(T) <= 8, "Not implemented");
+            return value;
+        }
     }
 };

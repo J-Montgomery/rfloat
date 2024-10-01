@@ -2,6 +2,7 @@
 
 #include <fenv.h>
 #include <limits>
+#include <ostream>
 #include <type_traits>
 
 #if __cplusplus >= 202302L
@@ -80,6 +81,7 @@ class ReproducibleWrapper {
     T value;
 
     constexpr ReproducibleWrapper(const T &val) : value(val) {}
+    constexpr ReproducibleWrapper() = default;
 
     template <detail::RoundingMode R2>
     constexpr ReproducibleWrapper<T, R2> &operator=(T val) {
@@ -125,6 +127,7 @@ class ReproducibleWrapper {
     };
 #endif /* __cplusplus >= 202002L */
 
+    /* Comparison operators */
     constexpr inline auto
     operator<(const ReproducibleWrapper<T, R> &rhs) const {
         return value < rhs.value;
@@ -155,6 +158,7 @@ class ReproducibleWrapper {
         return value != rhs.value;
     };
 
+    /* Arithmetic operators */
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator+(const ReproducibleWrapper<T, R> &rhs) const {
@@ -180,6 +184,44 @@ class ReproducibleWrapper {
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
         SAFE_BINOP(result, value, rhs.value, /);
         return ReproducibleWrapper(result);
+    }
+
+    /* Arithmetic assignment operators */
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> &
+    operator+=(const ReproducibleWrapper<T, R> &rhs) {
+        SAFE_BINOP(result, value, rhs.value, +);
+        value = result;
+        return *this;
+    }
+
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> &
+    operator-=(const ReproducibleWrapper<T, R> &rhs) {
+        SAFE_BINOP(result, value, rhs.value, -);
+        value = result;
+        return *this;
+    }
+
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> &
+    operator*=(const ReproducibleWrapper<T, R> &rhs) {
+        SAFE_BINOP(result, value, rhs.value, *);
+        value = result;
+        return *this;
+    }
+
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> &
+    operator/=(const ReproducibleWrapper<T, R> &rhs) {
+        SAFE_BINOP(result, value, rhs.value, /);
+        value = result;
+        return *this;
+    }
+
+    friend std::ostream &operator<<(std::ostream &stream,
+                                    const ReproducibleWrapper<T, R> &x) {
+        return stream << x.value;
     }
 };
 
