@@ -10,20 +10,18 @@
 #include <stdfloat>
 #endif /* __cplusplus >= 202302L */
 
-// Most compilers don't support this pragma and ignore it, but
-// we're still technically required to set it
-#pragma STDC FENV_ACCESS ON
-
 #if (defined(__clang__) || defined(__GNUG__) || defined(__GNUC__))
 // This macro adds a constraint on the specified parameter requiring
-// it to exist in a register. This prevents most (and hopefully all)
-// compilers from doing things unwanted optimizations like FMA when
-// they see subsequent lines that can be fused together.
+// it to be placed in a register, and also acts as a compiler barrier.
+// This prevents compilers from doing things unwanted optimizations 
+// that might combine, reorder, or remove instructions that
+// are specified by the source code. Some compilers like GCC
+// will even do this across lines in the absence of this macro.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
 #else
 // There's no standard way to define this on other compilers so
 // you're on your own.
-#warning "This compiler may not be supported. Proceed at your own risk."
+#pragma message("This compiler may not be supported. Proceed at your own risk.")
 #define OPT_BARRIER(param)
 #endif
 
@@ -165,6 +163,7 @@ class ReproducibleWrapper {
         SAFE_BINOP(result, value, rhs.value, +);
         return ReproducibleWrapper(result);
     }
+
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator-(const ReproducibleWrapper<T, R> &rhs) const {
