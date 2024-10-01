@@ -223,6 +223,80 @@ class ReproducibleWrapper {
                                     const ReproducibleWrapper<T, R> &x) {
         return stream << x.value;
     }
+
+    // Support expressions with non-reproducible types
+    // on the left hand side by converting them to reproducible types
+    // with the same type and rounding mode as the right hand side
+    // first. This should be essentially free, and the type overloads
+    // will ensure the operation is done safely.
+    FEATURE_CXX20(constexpr)
+    friend inline ReproducibleWrapper<T, R>
+    operator+(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) + rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline ReproducibleWrapper<T, R>
+    operator-(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) - rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline ReproducibleWrapper<T, R>
+    operator*(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) * rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline ReproducibleWrapper<T, R>
+    operator/(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) / rhs;
+    }
+
+#if __cplusplus >= 202002L
+    constexpr friend inline auto
+    operator<=>(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) <=> rhs;
+    };
+#else
+
+    // Relational operators
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator==(const T &lhs,
+                                  const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) == rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator!=(const T &lhs,
+                                  const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) != rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator<=(const T &lhs,
+                                  const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) <= rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator>=(const T &lhs,
+                                  const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) >= rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator>(const T &lhs,
+                                 const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) > rhs;
+    }
+
+    FEATURE_CXX20(constexpr)
+    friend inline auto operator<(const T &lhs,
+                                 const ReproducibleWrapper<T, R> &rhs) {
+        return ReproducibleWrapper(lhs) < rhs;
+    }
+#endif /* __cplusplus >= 202002L */
 };
 
 #if __cplusplus >= 202002L
@@ -238,103 +312,6 @@ using rfloat = ReproducibleWrapper<float, detail::RoundingMode::ToEven>;
 using rdouble = ReproducibleWrapper<double, detail::RoundingMode::ToEven>;
 using rounding_mode = detail::RoundingMode;
 #endif /* __cplusplus >= 202002L */
-
-// Support expressions with non-reproducible types
-// on the left hand side by converting them to reproducible types
-// with the same type and rounding mode as the right hand side
-// first. This should be essentially free, and the type overloads
-// will ensure the operation is done safely.
-
-#if __cplusplus >= 202002L
-template <typename T, detail::RoundingMode R>
-constexpr inline auto operator<=>(const T &lhs,
-                                  const ReproducibleWrapper<T, R> &rhs) {
-    return ReproducibleWrapper(lhs) <=> rhs;
-};
-#else
-
-// Relational operators
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator==(const T &lhs,
-                              const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) == rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator!=(const T &lhs,
-                              const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) != rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator<=(const T &lhs,
-                              const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) <= rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator>=(const T &lhs,
-                              const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) >= rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator>(const T &lhs,
-                             const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) > rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline auto operator<(const T &lhs,
-                             const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) < rhs;
-}
-#endif /* __cplusplus >= 202002L */
-
-// Arithmetic operators
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline ReproducibleWrapper<T, R>
-operator+(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) + rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline ReproducibleWrapper<T, R>
-operator-(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) - rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline ReproducibleWrapper<T, R>
-operator*(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) * rhs;
-}
-
-template <typename T, detail::RoundingMode R>
-FEATURE_CXX20(constexpr)
-static inline ReproducibleWrapper<T, R>
-operator/(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
-    static_assert(std::numeric_limits<T>::is_iec559);
-    return ReproducibleWrapper(lhs) / rhs;
-}
 
 #undef OPT_BARRIER
 #undef SAFE_BINOP
