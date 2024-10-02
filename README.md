@@ -1,6 +1,6 @@
 # **rfloat**
 
-**rfloat** is an experimental library implementing reproducible floating point types
+**rfloat** is an experimental header-only library implementing reproducible floating point types
 on existing compilers at minimal performance cost.
 
 ## Table of Contents
