@@ -7,6 +7,7 @@ on existing compilers at minimal performance cost.
 - [Overview](#overview)
 - [Usage](#usage)
 - [Limitations](#limitations)
+- [Issues](#issues)
 - [License](#license)
 - [Credit](#credit)
 
@@ -36,9 +37,9 @@ into something equivalent to:
 `float bar = fma(a, b, c);`
 
 This will result in a more precise result that is ultimately non-deterministic because
-this optimization not guaranteed for all combinations of compiler flags, source code, and platforms. MSVC does not appear to optimize between expressions in testing.
+this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers: `__asm__ volatile("" ::"X"(param) :)`
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, a _ReadWriteBarrier() is inserted between expressions in lieu of better alternatives.
 
 ## Usage
 
@@ -81,12 +82,15 @@ Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>
 for a safe subset of cmath. If this isn't sufficient, [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm) are recommended.
 - Unwrapping a reproducible type with `.fp64()` and related functions will allow you to
 write non-deterministic code with the result. Use these functions with caution.
-- MSVC has been observed adding a small number of unnecessary `MOV` instructions in rfloat-using code.
-- Clang occasionally produces suboptimal register allocations.
 - This library prohibits many meaningful compiler optimizations on your code. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime. Be aware of what your code does.
 - Ensuring the environment has the correct rounding mode is left up to the user.
 
 Platform non-determinism and reproducibility issues are considered bugs. Please report them.
+
+## Issues
+- MSVC has been observed adding a small number of unnecessary `MOV` instructions in generated code.
+- MSVC produces incorrect results in certain conditions under /fp:fast
+- Clang occasionally produces suboptimal register allocations.
 
 ## License
 
