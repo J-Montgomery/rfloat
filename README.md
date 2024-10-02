@@ -39,7 +39,7 @@ into something equivalent to:
 This will result in a more precise result that is ultimately non-deterministic because
 this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, a _ReadWriteBarrier() is inserted between expressions in lieu of better alternatives.
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class.
 
 ## Usage
 
@@ -89,8 +89,7 @@ Platform non-determinism and reproducibility issues are considered bugs. Please 
 
 ## Issues
 - MSVC has been observed adding a small number of unnecessary `MOV` instructions in generated code.
-- MSVC produces incorrect results in certain conditions under /fp:fast
-- Clang occasionally produces suboptimal register allocations.
+- Clang occasionally produces suboptimal register allocations compared to normal floating point code.
 
 ## License
 

@@ -14,19 +14,21 @@
 // Clang requires us to specify constraints on both sides
 // of the variable to prevent unwanted optimizations.
 // This unfortunately leads to an additional MOV after
-// some operations, but without it the library won't be
-// safe under -ffast-math and -funsafe-math-optimizations
+// some operations, but is required to defeat the optimizer
+// when -funsafe-math-optimizations or -ffast-math are enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param) : "X"(param) :)
 #elif defined(__GNUG__) || defined(__GNUC__)
-// This macro adds a constraint on the specified parameter requiring
-// it to be placed in a register, and also acts as a compiler barrier.
-// This prevents compilers from doing unwanted optimizations
-// that might combine, reorder, or remove instructions that
-// are specified by the source code. Some compilers like GCC
-// will even do this across lines in the absence of this macro.
+// GCC is a little nicer and only requires an input constraint
+// to defeat the optimizer.
+// How it works:
+//   This macro adds a constraint on the specified parameter requiring
+//   it to be placed in a register, and also acts as a compiler barrier.
+//   This prevents compilers from doing unwanted optimizations
+//   that might combine, reorder, or remove instructions that
+//   are specified by the source code.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
 #elif defined(_MSC_VER)
-#define OPT_BARRIER(param) _ReadWriteBarrier()
+#define OPT_BARRIER(param)
 #else
 // There's no standard way to define this on other compilers so
 // you're on your own.
@@ -34,16 +36,22 @@
 #define OPT_BARRIER(param)
 #endif
 
+// Our safety checks are taken care of at the usage site
+#define SAFE_BINOP(result, a, b, op)                                           \
+    T result = (a)op(b);                                                       \
+    OPT_BARRIER(result);
+
 #if __cplusplus >= 202002L
 #define FEATURE_CXX20(expr) expr
 #else
 #define FEATURE_CXX20(expr)
 #endif /* __cplusplus >= 202002L */
 
-// Our safety checks are taken care of at the usage site
-#define SAFE_BINOP(result, a, b, op)                                           \
-    T result = (a)op(b);                                                       \
-    OPT_BARRIER(result);
+#if defined(_MSC_VER) && defined(_M_FP_FAST)
+    #define MSVC_FAST
+#else
+    #undef MSVC_FAST
+#endif
 
 namespace rmath {
 
@@ -64,6 +72,14 @@ template <RoundingMode R> void SetRoundingMode() {
     }
 }
 } // namespace rmath
+
+// MSVC doesn't have a way to define SAFE_BINOP(),
+// but the code is safe under /fp:precise.
+// In order to support /fp:fast, we disable it at
+// the most restrictive scope we can
+#ifdef MSVC_FAST
+    #pragma float_control(precise, on, push)
+#endif
 
 template <typename T, rmath::RoundingMode R = rmath::RoundingMode::ToEven>
 class ReproducibleWrapper {
@@ -227,11 +243,6 @@ class ReproducibleWrapper {
         return *this;
     }
 
-    friend std::ostream &operator<<(std::ostream &stream,
-                                    const ReproducibleWrapper<T, R> &x) {
-        return stream << x.value;
-    }
-
     // Support expressions with non-reproducible types
     // on the left hand side by converting them to reproducible types
     // with the same type and rounding mode as the right hand side
@@ -305,7 +316,17 @@ class ReproducibleWrapper {
         return ReproducibleWrapper(lhs) < rhs;
     }
 #endif /* __cplusplus >= 202002L */
+
+    friend std::ostream &operator<<(std::ostream &stream,
+                                    const ReproducibleWrapper<T, R> &x) {
+        return stream << x.value;
+    }
 };
+
+#ifdef MSVC_FAST
+    #pragma float_control(pop)
+    #undef MSVC_FAST
+#endif
 
 // It'd be nice to use C++20 template aliases here,
 // but dependent types resolve after normal declarations,
