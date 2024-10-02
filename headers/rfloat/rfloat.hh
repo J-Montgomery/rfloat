@@ -278,7 +278,7 @@ class ReproducibleWrapper {
     operator<=>(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) <=> rhs;
     };
-#else
+#endif /* __cplusplus >= 202002L */
 
     // Relational operators
     FEATURE_CXX20(constexpr)
@@ -316,7 +316,6 @@ class ReproducibleWrapper {
                                  const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) < rhs;
     }
-#endif /* __cplusplus >= 202002L */
 
     friend std::ostream &operator<<(std::ostream &stream,
                                     const ReproducibleWrapper<T, R> &x) {
