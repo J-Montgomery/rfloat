@@ -10,7 +10,14 @@
 #include <stdfloat>
 #endif /* __cplusplus >= 202302L */
 
-#if (defined(__clang__) || defined(__GNUG__) || defined(__GNUC__))
+#if defined(__clang__)
+// Clang requires us to specify constraints on both sides
+// of the variable to prevent unwanted optimizations.
+// This unfortunately leads to an additional MOV after
+// some operations, but without it the library won't be
+// safe under -ffast-math and -funsafe-math-optimizations
+#define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param) : "X"(param) :)
+#elif defined(__GNUG__) || defined(__GNUC__)
 // This macro adds a constraint on the specified parameter requiring
 // it to be placed in a register, and also acts as a compiler barrier.
 // This prevents compilers from doing unwanted optimizations
@@ -18,6 +25,8 @@
 // are specified by the source code. Some compilers like GCC
 // will even do this across lines in the absence of this macro.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
+#elif defined(_MSC_VER)
+#define OPT_BARRIER(param) _ReadWriteBarrier()
 #else
 // There's no standard way to define this on other compilers so
 // you're on your own.

@@ -34,6 +34,11 @@ add_executable(gen_test_data)
 target_link_libraries(gen_test_data rfloat)
 target_sources(gen_test_data PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_test_data.cpp)
 
+add_executable(compiler_test)
+target_link_libraries(compiler_test rfloat)
+target_compile_options(compiler_test PRIVATE ${COMPILE_OPTIONS})
+target_sources(compiler_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/compiler_test.cpp)
+
 enable_testing()
 gtest_discover_tests(rfloat_tests)
 gtest_discover_tests(rcmath_tests)
