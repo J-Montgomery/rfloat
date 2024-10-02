@@ -26,7 +26,7 @@ target_compile_options(rfloat_tests PRIVATE ${COMPILE_OPTIONS})
 target_sources(rfloat_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rfloat_tests.cpp)
 
 add_executable(rcmath_tests)
-target_link_libraries(rcmath_tests GTest::gtest_main rfloat m)
+target_link_libraries(rcmath_tests GTest::gtest_main rfloat)
 target_compile_options(rcmath_tests PRIVATE ${COMPILE_OPTIONS})
 target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
 

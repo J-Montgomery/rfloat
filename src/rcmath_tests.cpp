@@ -152,6 +152,7 @@ TEST_F(RFloatReproducibilityTest, LorenzAttractor) {
                        28.6556606292725f};
 
     auto result = test.lorenz(input, steps);
+    std::cout << std::setprecision(17) << result[0] << " " << result[1] << " " << result[2] << std::endl;
     EXPECT_EQ(result, expected);
 }
 
@@ -204,6 +205,7 @@ TEST_F(RDoubleReproducibilityTest, LorenzAttractor) {
                        28.649356114765581};
 
     auto result = test.lorenz(input, steps);
+    std::cout << std::setprecision(17) << result[0] << " " << result[1] << " " << result[2] << std::endl;
     EXPECT_EQ(result, expected);
 }
 
