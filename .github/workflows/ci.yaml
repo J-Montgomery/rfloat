@@ -32,15 +32,15 @@ jobs:
             preset: unix
         exclude:
           - os: windows-latest
-            cpp_compiler: gcc
+            cpp_compiler: g++
           - os: windows-latest
-            cpp_compiler: clang
+            cpp_compiler: clang++
           - os: ubuntu-latest
             cpp_compiler: cl
           - os: macos-latest
             cpp_compiler: cl
           - os: macos-latest
-            cpp_compiler: gcc
+            cpp_compiler: g++
 
     steps:
     - uses: actions/checkout@v4

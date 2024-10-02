@@ -26,7 +26,7 @@
         },
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "COMPILE_OPTIONS": "/O2;/fp:fast;/arch:AVX2"
+            "COMPILE_OPTIONS": "/O2;/fp:fast;/arch:AVX2;/MT"
         }
       }
   ]
