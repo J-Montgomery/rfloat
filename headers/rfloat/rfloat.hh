@@ -5,10 +5,11 @@
 #include <ostream>
 #include <type_traits>
 
-#if __cplusplus >= 202302L
-/* Include the stdfloat header if it exists */
+#if ENABLE_STDFLOAT
+// There doesn't seem to be a C++ feature flag for <stdfloat>,
+// so let the user enable it
 #include <stdfloat>
-#endif /* __cplusplus >= 202302L */
+#endif /* ENABLE_STDFLOAT */
 
 #if defined(__clang__)
 // Clang requires us to specify constraints on both sides
@@ -48,9 +49,9 @@
 #endif /* __cplusplus >= 202002L */
 
 #if defined(_MSC_VER) && defined(_M_FP_FAST)
-    #define MSVC_FAST
+#define MSVC_FAST
 #else
-    #undef MSVC_FAST
+#undef MSVC_FAST
 #endif
 
 namespace rmath {
@@ -71,19 +72,19 @@ template <RoundingMode R> void SetRoundingMode() {
                       "Rounding mode is not supported");
     }
 }
-} // namespace rmath
+} /* namespace rmath */
 
 // MSVC doesn't have a way to define SAFE_BINOP(),
 // but the code is safe under /fp:precise.
 // In order to support /fp:fast, we disable it at
 // the most restrictive scope we can
 #ifdef MSVC_FAST
-    #pragma float_control(precise, on, push)
+#pragma float_control(precise, on, push)
 #endif
 
 template <typename T, rmath::RoundingMode R = rmath::RoundingMode::ToEven>
 class ReproducibleWrapper {
-#if __cplusplus >= 202302L
+#if ENABLE_STDFLOAT
     static_assert(std::is_same<T, float>::value ||
                       std::is_same<T, double>::value ||
                       std::is_same<T, std::float16_t>::value ||
@@ -94,7 +95,7 @@ class ReproducibleWrapper {
     static_assert(std::is_same<T, float>::value ||
                       std::is_same<T, double>::value,
                   "Unsupported floating point type");
-#endif /* __cplusplus >= 202302L */
+#endif /* ENABLE_STDFLOAT */
     static_assert(std::is_floating_point<T>::value,
                   "Non-floating point types are not supported");
     static_assert(std::numeric_limits<T>::is_iec559,
@@ -135,13 +136,13 @@ class ReproducibleWrapper {
         return value;
     }
 
-#if __cplusplus >= 202302L
+#if ENABLE_STDFLOAT
     template <typename T2 = T, typename = typename std::enable_if_t<
                                    std::is_same<T2, std::float16_t>::value>>
     constexpr inline T2 fp16() const {
         return value;
     }
-#endif /* __cplusplus >= 202302L */
+#endif /* ENABLE_STDFLOAT */
 
 #if __cplusplus >= 202002L
     constexpr inline auto
@@ -150,28 +151,28 @@ class ReproducibleWrapper {
     };
 #endif /* __cplusplus >= 202002L */
 
-    /* Comparison operators */
-    constexpr inline auto
+    // Comparison operators
+    constexpr inline bool
     operator<(const ReproducibleWrapper<T, R> &rhs) const {
         return value < rhs.value;
     };
 
-    constexpr inline auto
+    constexpr inline bool
     operator>(const ReproducibleWrapper<T, R> &rhs) const {
         return value > rhs.value;
     };
 
-    constexpr inline auto
+    constexpr inline bool
     operator<=(const ReproducibleWrapper<T, R> &rhs) const {
         return value <= rhs.value;
     };
 
-    constexpr inline auto
+    constexpr inline bool
     operator>=(const ReproducibleWrapper<T, R> &rhs) const {
         return value >= rhs.value;
     };
 
-    constexpr inline auto
+    constexpr inline bool
     operator==(const ReproducibleWrapper<T, R> &rhs) const {
         return value == rhs.value;
     };
@@ -181,7 +182,7 @@ class ReproducibleWrapper {
         return value != rhs.value;
     };
 
-    /* Arithmetic operators */
+    // Arithmetic operators
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator+(const ReproducibleWrapper<T, R> &rhs) const {
@@ -210,7 +211,7 @@ class ReproducibleWrapper {
         return ReproducibleWrapper(result);
     }
 
-    /* Arithmetic assignment operators */
+    // Arithmetic assignment operators
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator+=(const ReproducibleWrapper<T, R> &rhs) {
@@ -281,37 +282,37 @@ class ReproducibleWrapper {
 
     // Relational operators
     FEATURE_CXX20(constexpr)
-    friend inline auto operator==(const T &lhs,
+    friend inline bool operator==(const T &lhs,
                                   const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) == rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline auto operator!=(const T &lhs,
+    friend inline bool operator!=(const T &lhs,
                                   const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) != rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline auto operator<=(const T &lhs,
+    friend inline bool operator<=(const T &lhs,
                                   const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) <= rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline auto operator>=(const T &lhs,
+    friend inline bool operator>=(const T &lhs,
                                   const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) >= rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline auto operator>(const T &lhs,
+    friend inline bool operator>(const T &lhs,
                                  const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) > rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline auto operator<(const T &lhs,
+    friend inline bool operator<(const T &lhs,
                                  const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) < rhs;
     }
@@ -324,8 +325,8 @@ class ReproducibleWrapper {
 };
 
 #ifdef MSVC_FAST
-    #pragma float_control(pop)
-    #undef MSVC_FAST
+#pragma float_control(pop)
+#undef MSVC_FAST
 #endif
 
 // It'd be nice to use C++20 template aliases here,

@@ -39,7 +39,7 @@ into something equivalent to:
 This will result in a more precise result that is ultimately non-deterministic because
 this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class.
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in additional overhead when using reproducible types on MSVC if /fp:fast is enabled. This overhead is avoided with the default setting of /fp:precise.
 
 ## Usage
 
@@ -76,20 +76,23 @@ Expressions that compile with reproducible types should return the same results 
 
 Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode. Ensuring the environment has the correct rounding mode at any given time is left up to the user.
 
+`<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
+
 ## Limitations
 
 - `<cmath>` is not supported. The `<rfloat/rcmath.hh>` header is provided with overloads
 for a safe subset of cmath. If this isn't sufficient, [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm) are recommended.
 - Unwrapping a reproducible type with `.fp64()` and related functions will allow you to
 write non-deterministic code with the result. Use these functions with caution.
-- This library prohibits many meaningful compiler optimizations on your code. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime. Be aware of what your code does.
+- This library prohibits many compiler optimizations on code using reproducible types. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime.
 - Ensuring the environment has the correct rounding mode is left up to the user.
 
-Platform non-determinism and reproducibility issues are considered bugs. Please report them.
-
 ## Issues
-- MSVC has been observed adding a small number of unnecessary `MOV` instructions in generated code.
+- MSVC with /fp:fast results in additional overhead because the compiler is forced to
+convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang occasionally produces suboptimal register allocations compared to normal floating point code.
+
+Platform non-determinism and reproducibility issues are considered bugs. Please report them.
 
 ## License
 
