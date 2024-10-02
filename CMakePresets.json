@@ -1,0 +1,33 @@
+{
+    "version": 6,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 20,
+        "patch": 0
+    },
+    "configurePresets": [
+    {
+        "name": "unix",
+        "displayName": "Non-MSVC config for Clang and GCC",
+        "description": "Enables unsafe optimizations for reproducibility testing on unixes",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math"
+        }
+    },
+    {
+        "name": "windows",
+        "displayName": "MSVC config",
+        "description": "Enables unsafe optimizations for reproducibility testing on Windows",
+        "condition": {
+            "type": "equals",
+            "lhs": "${hostSystemName}",
+            "rhs": "Windows"
+        },
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "COMPILE_OPTIONS": "/O2;/fp:fast;/arch:AVX2"
+        }
+      }
+  ]
+}
