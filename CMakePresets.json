@@ -12,7 +12,10 @@
         "description": "Enables unsafe optimizations for reproducibility testing on unixes",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math"
+            "COMPILE_OPTIONS": "-O3;-pedantic"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
         }
     },
     {
@@ -27,6 +30,9 @@
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
             "COMPILE_OPTIONS": "/O2;/fp:fast;/arch:AVX2;/MT"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
         }
       }
   ]
