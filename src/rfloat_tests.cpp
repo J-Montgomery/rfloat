@@ -169,6 +169,14 @@ TEST_F(InterfaceTest, check_narrowing_detected) {
     EXPECT_EQ(rd1 + f1, f1 + d1);
 }
 
+TEST_F(InterfaceTest, check_mixed_types_allowed) {
+    float a;
+    rfloat b;
+
+    auto c = a + b;
+    static_assert(std::is_same<decltype(c), rfloat>::value);
+}
+
 // This should generate compile errors
 // TEST_F(InterfaceTest, check_mixed_types_prohibited) {
 //     rfloat rf1(f1);

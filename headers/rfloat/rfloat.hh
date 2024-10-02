@@ -36,7 +36,7 @@
     T result = (a)op(b);                                                       \
     OPT_BARRIER(result);
 
-namespace detail {
+namespace rmath {
 
 enum class RoundingMode { ToEven, ToPositive, ToNegative, ToZero };
 
@@ -54,9 +54,9 @@ template <RoundingMode R> void SetRoundingMode() {
                       "Rounding mode is not supported");
     }
 }
-} // namespace detail
+} // namespace rmath
 
-template <typename T, detail::RoundingMode R = detail::RoundingMode::ToEven>
+template <typename T, rmath::RoundingMode R = rmath::RoundingMode::ToEven>
 class ReproducibleWrapper {
 #if __cplusplus >= 202302L
     static_assert(std::is_same<T, float>::value ||
@@ -81,13 +81,13 @@ class ReproducibleWrapper {
     constexpr ReproducibleWrapper(const T &val) : value(val) {}
     constexpr ReproducibleWrapper() = default;
 
-    template <detail::RoundingMode R2>
+    template <rmath::RoundingMode R2>
     constexpr ReproducibleWrapper<T, R2> &operator=(T val) {
         value = val;
         return *this;
     }
 
-    template <detail::RoundingMode R2>
+    template <rmath::RoundingMode R2>
     constexpr ReproducibleWrapper<T, R> &
     operator=(const ReproducibleWrapper<T, R2> &other) {
         value = other.value;
@@ -303,9 +303,9 @@ class ReproducibleWrapper {
 // so doing it this way would make statements like
 // `using f = rfloat;` invalid.
 // Instead, pick reasonable defaults
-using rfloat = ReproducibleWrapper<float, detail::RoundingMode::ToEven>;
-using rdouble = ReproducibleWrapper<double, detail::RoundingMode::ToEven>;
-using rounding_mode = detail::RoundingMode;
+using rfloat = ReproducibleWrapper<float, rmath::RoundingMode::ToEven>;
+using rdouble = ReproducibleWrapper<double, rmath::RoundingMode::ToEven>;
+using rounding_mode = rmath::RoundingMode;
 
 // Sanity checks
 static_assert(std::is_trivial<rfloat>::value &&
