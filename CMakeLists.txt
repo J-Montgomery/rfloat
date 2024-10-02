@@ -11,24 +11,26 @@ find_package(GTest REQUIRED)
 
 set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g3 -ggdb")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -Wall")
-
-# rfloat
 
 file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*.hh)
 add_custom_target(format COMMAND clang-format-16 -i ${ALL_SOURCE_FILES})
 
+# rfloat
 add_library(rfloat INTERFACE)
 target_include_directories(rfloat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/headers)
 
+# Tests
+set(TEST_FLAGS -O3 -g3 -ggdb -pedantic -funsafe-math-optimizations -ffast-math)
+
 add_executable(rfloat_tests)
 target_link_libraries(rfloat_tests GTest::gtest_main rfloat)
+target_compile_options(rfloat_tests PRIVATE ${TEST_FLAGS})
 target_sources(rfloat_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rfloat_tests.cpp)
-
 
 add_executable(rcmath_tests)
 target_link_libraries(rcmath_tests GTest::gtest_main rfloat m)
+target_compile_options(rcmath_tests PRIVATE ${TEST_FLAGS})
 target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
 
 add_executable(gen_test_data)

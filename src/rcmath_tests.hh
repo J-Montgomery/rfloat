@@ -5,6 +5,7 @@
 
 template <typename T>
 struct TestFunctions {
+using Array2 = std::array<T, 2>;
 using Array3 = std::array<T, 3>;
 using Matrix = std::array<Array3, 3>;
 
@@ -60,18 +61,13 @@ T naive_sum(const std::vector<T>& values) {
     return sum;
 }
 
-Array3 lorenz(Array3 initial_state, int num_steps,
+Array3 lorenz(Array3 initial_state, std::size_t steps,
                      T sigma = 10.0, T rho = 28.0, T beta = 2.667, T dt = 0.01) const {
-    // Constraint: use the following values:
-    // sigma = 10.0
-    // rho = 28.0
-    // beta = 2.6667
-    // dt = 0.01
     T x = initial_state[0];
     T y = initial_state[1];
     T z = initial_state[2];
 
-    for (int i = 0; i < num_steps; ++i) {
+    for (std::size_t i = 0; i < steps; ++i) {
         T dx = sigma * (y - x);
         T dy = x * (rho - z) - y;
         T dz = x * y - beta * z;
@@ -82,6 +78,27 @@ Array3 lorenz(Array3 initial_state, int num_steps,
     }
 
     return Array3{x, y, z};
+}
+
+Array2 mandelbrot(const Array2& c, std::size_t steps) {
+    T x = T{0};
+    T y = T{0};
+    for (std::size_t n = 0; n < steps; ++n) {
+        if (x*x + y*y > T{4}) {
+            return Array2{x, y};
+        }
+        T x_temp = x*x - y*y + c[0];
+        y = T{2}*x*y + c[1];
+        x = x_temp;
+    }
+    return Array2{x, y};
+}
+
+T logistic_map(T r, T x, std::size_t steps) {
+    for (std::size_t i = 0; i < steps; ++i) {
+        x = r * x * (T{1} - x);
+    }
+    return x;
 }
 
 };

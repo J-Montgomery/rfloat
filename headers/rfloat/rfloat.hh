@@ -13,7 +13,7 @@
 #if (defined(__clang__) || defined(__GNUG__) || defined(__GNUC__))
 // This macro adds a constraint on the specified parameter requiring
 // it to be placed in a register, and also acts as a compiler barrier.
-// This prevents compilers from doing things unwanted optimizations 
+// This prevents compilers from doing unwanted optimizations
 // that might combine, reorder, or remove instructions that
 // are specified by the source code. Some compilers like GCC
 // will even do this across lines in the absence of this macro.
@@ -298,19 +298,22 @@ class ReproducibleWrapper {
 #endif /* __cplusplus >= 202002L */
 };
 
-#if __cplusplus >= 202002L
-// Use C++20 alias template type deduction if it's available
-template <detail::RoundingMode R = detail::RoundingMode::ToEven>
-using rfloat = ReproducibleWrapper<float, R>;
-template <detail::RoundingMode R = detail::RoundingMode::ToEven>
-using rdouble = ReproducibleWrapper<double, R>;
-using rounding_mode = detail::RoundingMode;
-#else
-// otherwise pick reasonable defaults
+// It'd be nice to use C++20 template aliases here,
+// but dependent types resolve after normal declarations,
+// so doing it this way would make statements like
+// `using f = rfloat;` invalid.
+// Instead, pick reasonable defaults
 using rfloat = ReproducibleWrapper<float, detail::RoundingMode::ToEven>;
 using rdouble = ReproducibleWrapper<double, detail::RoundingMode::ToEven>;
 using rounding_mode = detail::RoundingMode;
-#endif /* __cplusplus >= 202002L */
+
+// Sanity checks
+static_assert(std::is_trivial<rfloat>::value &&
+                  std::is_default_constructible<rfloat>::value,
+              "something is wrong");
+static_assert(std::is_trivial<rdouble>::value &&
+                  std::is_default_constructible<rdouble>::value,
+              "something is wrong");
 
 #undef OPT_BARRIER
 #undef SAFE_BINOP
