@@ -107,8 +107,8 @@ TEST_F(RFloatReproducibilityTest, iir_filter) {
     std::vector<TestType> ffw_coeff = {1.0f, 2.0f, 3.0f};
     std::vector<TestType> fb_coeff = {1.0f, 2.0f, 3.0f};
     std::vector<TestType> history = {3.0f, 3.0f, 3.0f};
-    std::vector<TestType> output = {0.0f, 0.0f};
-    TestType expected = 18.0f;
+    std::vector<TestType> output = {0.0f, 2.0f};
+    TestType expected = 12.0f;
 
     auto result = test.iir_filter(ffw_coeff, fb_coeff, history, output);
     EXPECT_EQ(result, expected);
