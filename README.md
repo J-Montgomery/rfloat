@@ -44,7 +44,7 @@ this optimization not guaranteed for all combinations of compiler flags, source 
 **rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in additional overhead when using reproducible types on MSVC if /fp:fast is enabled.
 
 > [!NOTE]
-> This MSVC overhead is not present when using the default setting of /fp:precise.
+> MSVC overhead is not present when using the default setting of /fp:precise.
 
 ## Usage
 
@@ -120,14 +120,15 @@ A whetstone benchmark is provided as a basic example and can be built by enablin
 
 ### Ansibench whetstone on x64:
 
-No performance loss observed on `-O2` at 1000000 iterations.
+No performance differential observed on `-O2` at 1000000 iterations.
 
 | Compiler | double | rdouble |
 |----------|--------|---------|
 | Clang 16 | 5882.4 MWIPS | 5882.4 MWIPS |
 | GCC 11   | 5882.4 MWIPS | 5882.4 MWIPS |
 
-There is 6% performance loss observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations.
+6% performance differential observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations. Note that the performance of **rfloat** has not decreased, but additional optimizations
+have benefited the baseline implementation. No attempt has been made to ensure that the results computed by the baseline implementation are correct.
 
 | Compiler | double | rdouble |
 |----------|--------|---------|
