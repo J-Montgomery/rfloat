@@ -71,6 +71,10 @@
     T result = (a)op(b);                                                       \
     OPT_BARRIER(result);
 
+#define SAFE_UNOP(result, a, op)                                               \
+    T result = op(a);                                                          \
+    OPT_BARRIER(result);
+
 #if __cplusplus >= 202002L
 #define FEATURE_CXX20(expr) expr
 #else
@@ -212,7 +216,20 @@ class ReproducibleWrapper {
         return value != rhs.value;
     };
 
-    // Arithmetic operators
+    // Unary Arithmetic operators
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> operator+() const {
+        SAFE_UNOP(result, value, +);
+        return ReproducibleWrapper(result);
+    }
+
+    FEATURE_CXX20(constexpr)
+    inline ReproducibleWrapper<T, R> operator-() const {
+        SAFE_UNOP(result, value, -);
+        return ReproducibleWrapper(result);
+    }
+
+    // Binary Arithmetic operators
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator+(const ReproducibleWrapper<T, R> &rhs) const {
