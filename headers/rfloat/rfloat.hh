@@ -11,31 +11,60 @@
 #include <stdfloat>
 #endif /* ENABLE_STDFLOAT */
 
-#if defined(__clang__)
-// Clang requires us to specify constraints on both sides
-// of the variable to prevent unwanted optimizations.
-// This unfortunately leads to an additional MOV after
-// some operations, but is required to defeat the optimizer
-// when -funsafe-math-optimizations or -ffast-math are enabled.
-#define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param) : "X"(param) :)
-#elif defined(__GNUG__) || defined(__GNUC__)
-// GCC is a little nicer and only requires an input constraint
-// to defeat the optimizer.
-// How it works:
-//   This macro adds a constraint on the specified parameter requiring
-//   it to be placed in a register, and also acts as a compiler barrier.
-//   This prevents compilers from doing unwanted optimizations
-//   that might combine, reorder, or remove instructions that
-//   are specified by the source code.
+// The OPT_BARRIER macro acts as a barrier preventing the
+// compiler/optimizer from optimizing across it, and forces
+// the compiler to have computed the value of param by the
+// time the macro ends.
+#if defined(__aarch64__) && (defined(__clang__) || defined(__GNUG__))
+// For AArch64, we can use the "w" register constraint to specify
+// that the parameter must exist in a floating point or SVE register
+// somewhere. The compilers are smart enough to do the right thing
+// on this platform.
+// For ARM32, we would need to use either the "t" or "w" constraint depending
+// on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
+#define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
+#elif defined(__clang__)
+// We don't have a similarly useful target-specific constraint for x86_64,
+// so we fall back to the generic "X" constraint.
+// Clang requires us to specify the +X constraint on the output to do what
+// we want, meaning the parameter must exist *somewhere* by the time the
+// barrier completes. In practice, this seems to generate an unnecessary
+// store per operation.
+// Mailing lists suggest this should be an "rm" constraint instead,
+// which has the side effect of generating an even more expensive
+// mov to a general purpose register instead.
+// Mailing lists also suggest that "+X" and "=X" are identical, which
+// is not true in practice.
+#define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param)::)
+#elif defined(__GNUG__)
+// GCC has several issues related to the "X" constraint on output
+// variables:
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94180
+// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
+// https://gcc.gnu.org/pipermail/gcc-help/2024-January/143176.html
+// To work around this, we specify the "X" constraint on the input,
+// which seems to work in practice.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
 #elif defined(_MSC_VER)
+// We can't tell MSVC what we want it to do, so instead we disable
+// /fp:fast for the code that would unsafe if it's enabled
+// on the translation unit
 #define OPT_BARRIER(param)
+
+#if defined(_M_FP_FAST)
+#define MSVC_FAST
 #else
-// There's no standard way to define this on other compilers so
-// you're on your own.
-#pragma message("This compiler may not be supported. Proceed at your own risk.")
+#undef MSVC_FAST
+#endif /* _M_FP_FAST */
+
+#else
+// There's no standard way to communicate what we want to the compiler
+// so we emit a warning and let the user decide if they want to proceed.
+#pragma message(                                                               \
+        "This compiler may not support reproducible types. Proceed at your own risk.")
 #define OPT_BARRIER(param)
-#endif
+#endif /* OPT_BARRIER */
 
 // Our safety checks are taken care of at the usage site
 #define SAFE_BINOP(result, a, b, op)                                           \
@@ -47,12 +76,6 @@
 #else
 #define FEATURE_CXX20(expr)
 #endif /* __cplusplus >= 202002L */
-
-#if defined(_MSC_VER) && defined(_M_FP_FAST)
-#define MSVC_FAST
-#else
-#undef MSVC_FAST
-#endif
 
 namespace rmath {
 

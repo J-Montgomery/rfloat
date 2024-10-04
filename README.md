@@ -6,6 +6,7 @@ on existing compilers at minimal performance cost.
 ## Table of Contents
 - [Overview](#overview)
 - [Usage](#usage)
+- [Platform Support](#platforms)
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [License](#license)
@@ -78,6 +79,12 @@ Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
+## Platforms
+### Tested Platforms
+- Linux on x64
+- Windows on x64
+- MacOS on aarch64
+
 ## Limitations
 
 - `<cmath>` is not supported. The `<rfloat/rcmath.hh>` header is provided with overloads
@@ -90,7 +97,8 @@ write non-deterministic code with the result. Use these functions with caution.
 ## Issues
 - MSVC with /fp:fast results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
-- Clang occasionally produces suboptimal register allocations compared to normal floating point code.
+- Clang produces unnecessary moves on x64.
+- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing
 
 Platform non-determinism and reproducibility issues are considered bugs. Please report them.
 
