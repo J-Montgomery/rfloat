@@ -177,6 +177,34 @@ TEST_F(InterfaceTest, check_mixed_types_allowed) {
     static_assert(std::is_same<decltype(c), rfloat>::value);
 }
 
+TEST_F(InterfaceTest, check_explicit_upcasts_allowed) {
+    rfloat a(f1);
+    rdouble b(a);
+
+    auto c = b + b;
+
+    // A dummy test
+    EXPECT_EQ(c, 2 * b);
+}
+
+// This test shouldn't compile
+// TEST_F(InterfaceTest, check_downcasts_prohibited) {
+//     rdouble a(d1);
+//     rfloat b = a;
+
+//     auto c = b + b;
+//     EXPECT_EQ(c, 2 * b);
+// }
+
+// This should generate compile errors
+// TEST_F(InterfaceTest, check_implicit_upcasts_prohibited) {
+//     rfloat a(f1);
+//     rdouble b = a; // Prohibit implicit upcasts
+
+//     auto c = b + b;
+//     EXPECT_EQ(c, 2 * b);
+// }
+
 // This should generate compile errors
 // TEST_F(InterfaceTest, check_mixed_types_prohibited) {
 //     rfloat rf1(f1);

@@ -120,6 +120,13 @@ class ReproducibleWrapper {
         return *this;
     }
 
+    // Enable explicit upcasts
+    template <typename T2, rmath::RoundingMode R2,
+              typename = typename std::enable_if<sizeof(T2) >= sizeof(T)>::type>
+    explicit constexpr inline operator ReproducibleWrapper<T2, R2>() const {
+        return ReproducibleWrapper<T2, R2>(static_cast<T2>(value));
+    }
+
     // Normally we'd want to delete the implicit conversion operators
     // However, GCC incorrectly assumes that doing so means that
     // the types are convertible and generates confusing errors about
