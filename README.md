@@ -9,6 +9,7 @@ on existing compilers at minimal performance cost.
 - [Platform Support](#platforms)
 - [Limitations](#limitations)
 - [Issues](#issues)
+- [Benchmarks](#benchmarks)
 - [License](#license)
 - [Credit](#credit)
 
@@ -40,7 +41,10 @@ into something equivalent to:
 This will result in a more precise result that is ultimately non-deterministic because
 this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in additional overhead when using reproducible types on MSVC if /fp:fast is enabled. This overhead is avoided with the default setting of /fp:precise.
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in additional overhead when using reproducible types on MSVC if /fp:fast is enabled.
+
+> [!NOTE]
+> This MSVC overhead is not present when using the default setting of /fp:precise.
 
 ## Usage
 
@@ -75,7 +79,10 @@ auto c = a + b; // compile error
 
 Expressions that compile with reproducible types should return the same results under any combination of compiler flags. There should be little to no performance cost beyond the operations themselves.
 
-Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode. Ensuring the environment has the correct rounding mode at any given time is left up to the user.
+Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode.
+
+> [!NOTE]
+> Ensuring the environment has the correct rounding mode at any given time is left up to the user.
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
@@ -98,9 +105,34 @@ write non-deterministic code with the result. Use these functions with caution.
 - MSVC with /fp:fast results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang produces unnecessary moves on x64.
-- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing
+- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing.
 
 Platform non-determinism and reproducibility issues are considered bugs. Please report them.
+
+## Benchmarks
+
+A whetstone benchmark is provided as a basic example and can be built by enabling the `RFLOAT_BENCHMARKS` option in CMake.
+
+> [!NOTE]
+> **rfloat** is inherently sensitive to source code, toolchain and platform support for performance.
+> Measurements are indicative only, and may not be valid on your source code, with your toolchain,
+> on your hardware.
+
+### Ansibench whetstone on x64:
+
+No performance loss observed on `-O2` at 1000000 iterations.
+
+| Compiler | double | rdouble |
+|----------|--------|---------|
+| Clang 16 | 5882.4 MWIPS | 5882.4 MWIPS |
+| GCC 11   | 5882.4 MWIPS | 5882.4 MWIPS |
+
+There is 6% performance loss observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations.
+
+| Compiler | double | rdouble |
+|----------|--------|---------|
+| Clang 16 | 6250 MWIPS | 5882.4 MWIPS |
+| GCC 11   | 6250 MWIPS | 5882.4 MWIPS |
 
 ## License
 

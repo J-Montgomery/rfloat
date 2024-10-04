@@ -11,6 +11,7 @@
         "displayName": "Non-MSVC config for Clang and GCC",
         "description": "Enables unsafe optimizations for reproducibility testing on unixes",
         "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
             "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math;-march=native"
         },
         "environment": {
@@ -33,6 +34,18 @@
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
         }
-      }
+    },
+    {
+        "name": "benchmark",
+        "displayName": "Benchmarking config for Clang and GCC",
+        "description": "Enables reasonable optimizations for benchmark testing on unixes",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
+        }
+    }
   ]
 }

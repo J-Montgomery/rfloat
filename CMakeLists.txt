@@ -9,6 +9,7 @@ project(
 
 find_package(GTest REQUIRED)
 
+option(RFLOAT_BENCHMARKS "Enable benchmarks" OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
 file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*.hh)
@@ -38,6 +39,10 @@ add_executable(compiler_test)
 target_link_libraries(compiler_test rfloat)
 target_compile_options(compiler_test PRIVATE ${COMPILE_OPTIONS})
 target_sources(compiler_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/compiler_test.cpp)
+
+if(RFLOAT_BENCHMARKS)
+    add_subdirectory(src/benchmarks)
+endif()
 
 enable_testing()
 gtest_discover_tests(rfloat_tests)
