@@ -245,27 +245,29 @@ TEST_F(InterfaceTest, check_numeric_limits) {
                   std::numeric_limits<float>::has_signaling_NaN);
     static_assert(std::numeric_limits<rdouble>::has_signaling_NaN ==
                   std::numeric_limits<double>::has_signaling_NaN);
+
+    static_assert(std::is_same<rfloat::underlying_type, float>::value);
+    static_assert(std::is_same<rdouble::underlying_type, double>::value);
 }
 
 TEST_F(InterfaceTest, check_float_iostream_interfaces) {
     std::vector<rfloat> special_values = {
+        1.0f,
+        1.0f / 3.0f,
+        3.14159265358979323846f,
         0.0,
         -0.0,
         std::numeric_limits<rfloat>::min(),
         -std::numeric_limits<rfloat>::min(),
         std::numeric_limits<rfloat>::max(),
         -std::numeric_limits<rfloat>::max(),
-        std::numeric_limits<rfloat>::denorm_min(),
-        -std::numeric_limits<rfloat>::denorm_min(),
-        1.0f,
-        1.0f / 3.0f,
-        3.14159265358979323846f};
+        std::numeric_limits<rfloat>::denorm_min()};
 
     std::stringstream ss;
 
     for (const auto &x : special_values) {
         ss << std::setprecision(17) << x << " ";
-        rfloat y;
+        rfloat y = 0.0;
         ss >> y;
         EXPECT_EQ(x, y);
     }
@@ -273,23 +275,21 @@ TEST_F(InterfaceTest, check_float_iostream_interfaces) {
 
 TEST_F(InterfaceTest, check_double_iostream_interfaces) {
     std::vector<rdouble> special_values = {
+        1.0,
+        1.0 / 3.0,
+        3.14159265358979323846,
         0.0,
         -0.0,
         std::numeric_limits<rdouble>::min(),
         -std::numeric_limits<rdouble>::min(),
         std::numeric_limits<rdouble>::max(),
         -std::numeric_limits<rdouble>::max(),
-        std::numeric_limits<rdouble>::denorm_min(),
-        -std::numeric_limits<rdouble>::denorm_min(),
-        1.0f,
-        1.0f / 3.0f,
-        3.14159265358979323846f};
-
-    std::stringstream ss;
+        std::numeric_limits<rdouble>::denorm_min()};
 
     for (const auto &x : special_values) {
+        std::stringstream ss("");
         ss << std::setprecision(17) << x << " ";
-        rdouble y;
+        rdouble y = 0.0;
         ss >> y;
         EXPECT_EQ(x, y);
     }
