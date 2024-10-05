@@ -187,6 +187,127 @@ TEST_F(InterfaceTest, check_explicit_upcasts_allowed) {
     EXPECT_EQ(c, 2 * b);
 }
 
+TEST_F(InterfaceTest, check_numeric_limits) {
+    static_assert(std::numeric_limits<rfloat>::digits ==
+                  std::numeric_limits<float>::digits);
+    static_assert(std::numeric_limits<rfloat>::digits10 ==
+                  std::numeric_limits<float>::digits10);
+
+    static_assert(std::numeric_limits<rdouble>::digits ==
+                  std::numeric_limits<double>::digits);
+    static_assert(std::numeric_limits<rdouble>::digits10 ==
+                  std::numeric_limits<double>::digits10);
+
+    static_assert(std::numeric_limits<rfloat>::min() ==
+                  std::numeric_limits<float>::min());
+    static_assert(std::numeric_limits<rfloat>::max() ==
+                  std::numeric_limits<float>::max());
+
+    static_assert(std::numeric_limits<rdouble>::min() ==
+                  std::numeric_limits<double>::min());
+    static_assert(std::numeric_limits<rdouble>::max() ==
+                  std::numeric_limits<double>::max());
+
+    static_assert(std::numeric_limits<rfloat>::lowest() ==
+                  std::numeric_limits<float>::lowest());
+    static_assert(std::numeric_limits<rfloat>::denorm_min() ==
+                  std::numeric_limits<float>::denorm_min());
+    static_assert(std::numeric_limits<rfloat>::infinity() ==
+                  std::numeric_limits<float>::infinity());
+    static_assert(std::numeric_limits<rfloat>::epsilon() ==
+                  std::numeric_limits<float>::epsilon());
+
+    static_assert(std::numeric_limits<rdouble>::lowest() ==
+                  std::numeric_limits<double>::lowest());
+    static_assert(std::numeric_limits<rdouble>::denorm_min() ==
+                  std::numeric_limits<double>::denorm_min());
+    static_assert(std::numeric_limits<rdouble>::infinity() ==
+                  std::numeric_limits<double>::infinity());
+    static_assert(std::numeric_limits<rdouble>::epsilon() ==
+                  std::numeric_limits<double>::epsilon());
+
+    static_assert(std::numeric_limits<rfloat>::is_iec559 ==
+                  std::numeric_limits<float>::is_iec559);
+    static_assert(std::numeric_limits<rdouble>::is_iec559 ==
+                  std::numeric_limits<double>::is_iec559);
+
+    static_assert(std::numeric_limits<rfloat>::has_infinity ==
+                  std::numeric_limits<float>::has_infinity);
+    static_assert(std::numeric_limits<rdouble>::has_infinity ==
+                  std::numeric_limits<double>::has_infinity);
+
+    static_assert(std::numeric_limits<rfloat>::has_quiet_NaN ==
+                  std::numeric_limits<float>::has_quiet_NaN);
+    static_assert(std::numeric_limits<rdouble>::has_quiet_NaN ==
+                  std::numeric_limits<double>::has_quiet_NaN);
+
+    static_assert(std::numeric_limits<rfloat>::has_signaling_NaN ==
+                  std::numeric_limits<float>::has_signaling_NaN);
+    static_assert(std::numeric_limits<rdouble>::has_signaling_NaN ==
+                  std::numeric_limits<double>::has_signaling_NaN);
+}
+
+TEST_F(InterfaceTest, check_float_iostream_interfaces) {
+    std::vector<rfloat> special_values = {
+        0.0,
+        -0.0,
+        std::numeric_limits<rfloat>::min(),
+        -std::numeric_limits<rfloat>::min(),
+        std::numeric_limits<rfloat>::max(),
+        -std::numeric_limits<rfloat>::max(),
+        std::numeric_limits<rfloat>::denorm_min(),
+        -std::numeric_limits<rfloat>::denorm_min(),
+        1.0f,
+        1.0f / 3.0f,
+        3.14159265358979323846f};
+
+    std::stringstream ss;
+
+    for (const auto &x : special_values) {
+        ss << std::setprecision(17) << x << " ";
+        rfloat y;
+        ss >> y;
+        EXPECT_EQ(x, y);
+    }
+}
+
+TEST_F(InterfaceTest, check_double_iostream_interfaces) {
+    std::vector<rdouble> special_values = {
+        0.0,
+        -0.0,
+        std::numeric_limits<rdouble>::min(),
+        -std::numeric_limits<rdouble>::min(),
+        std::numeric_limits<rdouble>::max(),
+        -std::numeric_limits<rdouble>::max(),
+        std::numeric_limits<rdouble>::denorm_min(),
+        -std::numeric_limits<rdouble>::denorm_min(),
+        1.0f,
+        1.0f / 3.0f,
+        3.14159265358979323846f};
+
+    std::stringstream ss;
+
+    for (const auto &x : special_values) {
+        ss << std::setprecision(17) << x << " ";
+        rdouble y;
+        ss >> y;
+        EXPECT_EQ(x, y);
+    }
+}
+
+TEST_F(InterfaceTest, check_float_unary_operations) {
+    rfloat a(f1);
+
+    auto b = -a;
+    static_assert(std::is_same<decltype(b), rfloat>::value);
+
+    auto c = +a;
+    static_assert(std::is_same<decltype(c), rfloat>::value);
+
+    EXPECT_EQ(a, c);
+    EXPECT_EQ(-b, c);
+}
+
 // This test shouldn't compile
 // TEST_F(InterfaceTest, check_downcasts_prohibited) {
 //     rdouble a(d1);
