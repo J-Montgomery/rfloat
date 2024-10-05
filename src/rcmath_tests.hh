@@ -61,8 +61,8 @@ T naive_sum(const std::vector<T>& values) {
     return sum;
 }
 
-Array3 lorenz(Array3 initial_state, std::size_t steps,
-                     T sigma = 10.0, T rho = 28.0, T beta = 2.667, T dt = 0.01) const {
+static Array3 lorenz(Array3 initial_state, std::size_t steps,
+                     T sigma = 10.0, T rho = 28.0, T beta = 2.667, T dt = 0.01) {
     T x = initial_state[0];
     T y = initial_state[1];
     T z = initial_state[2];
