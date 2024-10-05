@@ -1,84 +1,24 @@
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <functional>
-#include <array>
-#include <iostream>
-#include <vector>
-#include <cmath>
 
-#include <iomanip>
 
-template<typename T, size_t InputSize, size_t OutputSize>
-class TestDataGenerator {
-public:
-    using InputType = std::array<T, InputSize>;
-    using OutputType = std::array<T, OutputSize>;
-    using FunctionType = std::function<OutputType(const InputType&)>;
+#include "gen_repro_tests.hh"
+#include "rcmath_tests.hh"
+#include <rfloat/rfloat.hh>
 
-    TestDataGenerator(FunctionType func, const std::string& name)
-        : m_func(func), m_name(name) {}
+constexpr std::size_t steps = 1000;
 
-    std::string generate(const std::vector<InputType>& inputs) {
-        std::ostringstream oss;
-        oss << "#pragma once\n#include <string>\n\n";
-        oss << "std::string " << m_name << "_testdata = R\"(\n";
-
-        for (const auto& input : inputs) {
-            for (const auto& val : input) {
-                oss << std::setprecision(17) << val << " ";
-            }
-
-            OutputType output = m_func(input);
-            for (const auto& val : output) {
-                oss << std::setprecision(17) << val << " ";
-            }
-            oss << "\n";
-        }
-
-        oss << ")\";\n";
-        return oss.str();
-    }
-
-private:
-    FunctionType m_func;
-    std::string m_name;
-};
-
-template<typename T, size_t InputSize, size_t OutputSize>
-void generate_test_data(
-    const std::string& funcname,
-    std::function<std::array<T, OutputSize>(const std::array<T, InputSize>&)> func,
-    const std::vector<std::array<T, InputSize>>& inputs
-) {
-    TestDataGenerator<T, InputSize, OutputSize> generator(func, funcname);
-    std::string testData = generator.generate(inputs);
-
-    std::string filename = funcname + "_testdata.hh";
-    std::ofstream outfile(filename);
-    if (outfile) {
-        outfile << testData;
-        outfile.close();
-        std::cout << "Test data for " << funcname << " saved to " << filename << std::endl;
-    } else {
-        std::cerr << "Unable to open file " << filename << " for writing" << std::endl;
-    }
-}
-
-std::array<double, 1> double_num(const std::array<double, 1>& input) {
-    return {input[0] * 2};
-}
-
-std::array<double, 3> complex_func(const std::array<double, 2>& input) {
-    return {input[0] / input[1], input[0] - input[1], input[0] * input[1]};
+template <typename T> std::array<T, 3> lorenz(const std::array<T, 3> &input) {
+    TestFunctions<T> func;
+    auto result = func.lorenz(input, steps);
+    return result;
 }
 
 int main() {
-    std::vector<std::array<double, 1>> double_num_inputs = {{1}, {2}, {3}, {4}};
-    generate_test_data<double, 1, 1>("double_num", double_num, double_num_inputs);
+    using TestType = rdouble;
 
-    std::vector<std::array<double, 2>> complex_func_inputs = {{1, 2}, {3, 4}, {5, 6}};
-    generate_test_data<double, 2, 3>("complex_func", complex_func, complex_func_inputs);
+    auto random_lorenz_inputs =
+        generate_random_args<TestType, 3>(0.0, 20.0, 1000);
+    generate_test_data<TestType, 3, 3>("random_lorenz", lorenz<TestType>,
+                                       random_lorenz_inputs);
 
     return 0;
 }

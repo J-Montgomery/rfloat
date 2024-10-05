@@ -1,31 +1,29 @@
+#include <array>
 #include <gtest/gtest.h>
 #include <sstream>
-#include <vector>
 #include <stdexcept>
-#include <array>
+#include <vector>
 
-#include "testdata/doubleNum_testdata.hh"
-#include "testdata/sumNums_testdata.hh"
+#include "rcmath_tests.hh"
+#include <rfloat/rfloat.hh>
 
-int double_num(int input) {
-    return input * 2;
-}
+#include "testdata/random_lorenz_testdata.hh"
 
-int sum_nums(int a, int b) {
-    return a + b;
-}
-
-template<std::size_t InputSize, std::size_t OutputSize>
+// Infrastructure to read lines of test data from the headers
+// included above and parsed into TestParam objects. Each line is a single test
+// case.
+template <typename T, std::size_t InputSize, std::size_t OutputSize>
 struct TestParam {
-    std::array<int, InputSize> inputs;
-    std::array<int, OutputSize> expected_outputs;
+    std::array<T, InputSize> inputs;
+    std::array<T, OutputSize> expected_outputs;
 };
 
-template<std::size_t InputSize, std::size_t OutputSize>
+template <typename T, std::size_t InputSize, std::size_t OutputSize>
 class HeaderParameterizedTest : public ::testing::Test {
-public:
-    static std::vector<TestParam<InputSize, OutputSize>> LoadTestData(std::string& data) {
-        std::vector<TestParam<InputSize, OutputSize>> test_data;
+  public:
+    static std::vector<TestParam<T, InputSize, OutputSize>>
+    LoadTestData(std::string &data) {
+        std::vector<TestParam<T, InputSize, OutputSize>> test_data;
         std::istringstream iss(data);
         std::string line;
         int line_number = 0;
@@ -38,23 +36,28 @@ public:
             }
 
             std::istringstream line_stream(line);
-            TestParam<InputSize, OutputSize> param;
+            TestParam<T, InputSize, OutputSize> param;
 
             for (std::size_t i = 0; i < InputSize; ++i) {
                 if (!(line_stream >> param.inputs[i])) {
-                    throw std::runtime_error("Not enough input values on line " + std::to_string(line_number));
+                    throw std::runtime_error(
+                        "Not enough valid input values on line " +
+                        std::to_string(line_number));
                 }
             }
 
             for (std::size_t i = 0; i < OutputSize; ++i) {
                 if (!(line_stream >> param.expected_outputs[i])) {
-                    throw std::runtime_error("Not enough output values on line " + std::to_string(line_number));
+                    throw std::runtime_error(
+                        "Not enough valid output values on line " +
+                        std::to_string(line_number));
                 }
             }
 
             int extra;
             if (line_stream >> extra) {
-                throw std::runtime_error("Too many values on line " + std::to_string(line_number));
+                throw std::runtime_error("Too many values on line " +
+                                         std::to_string(line_number));
             }
 
             test_data.push_back(param);
@@ -63,16 +66,16 @@ public:
     }
 };
 
-TEST(DoubleTest, TestDouble) {
-    auto test_data = HeaderParameterizedTest<1, 1>::LoadTestData(doubleNum_testdata);
-    for (const auto& param : test_data) {
-        EXPECT_EQ(double_num(param.inputs[0]), param.expected_outputs[0]);
-    }
-}
+/* Tests*/
+const std::size_t steps = 1000;
 
-TEST(SumTest, TestSumFunction) {
-    auto test_data = HeaderParameterizedTest<2, 1>::LoadTestData(sumNums_testdata);
-    for (const auto& param : test_data) {
-        EXPECT_EQ(sum_nums(param.inputs[0], param.inputs[1]), param.expected_outputs[0]);
+TEST(LorenzTest, RandomInputs) {
+    auto test_data = HeaderParameterizedTest<rdouble, 3, 3>::LoadTestData(
+        random_lorenz_testdata);
+    using tf = TestFunctions<rdouble>;
+    for (const auto &param : test_data) {
+
+        auto results = TestFunctions<rdouble>::lorenz(param.inputs, steps);
+        EXPECT_EQ(results, param.expected_outputs);
     }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fenv.h>
+#include <istream>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -129,6 +130,7 @@ class ReproducibleWrapper {
                   "Type must be IEC 559 / IEEE 754 compliant");
 
   public:
+    using underlying_type = T;
     T value;
 
     constexpr ReproducibleWrapper(const T &val) : value(val) {}
@@ -364,11 +366,21 @@ class ReproducibleWrapper {
         return ReproducibleWrapper(lhs) < rhs;
     }
 
+    // Stream operators
+    friend std::istream &operator>>(std::istream &stream,
+                                    ReproducibleWrapper<T, R> &x) {
+        return stream >> x.value;
+    }
+
     friend std::ostream &operator<<(std::ostream &stream,
                                     const ReproducibleWrapper<T, R> &x) {
         return stream << x.value;
     }
 };
+
+template <typename T>
+class std::numeric_limits<ReproducibleWrapper<T>>
+    : public std::numeric_limits<T> {};
 
 #ifdef MSVC_FAST
 #pragma float_control(pop)
