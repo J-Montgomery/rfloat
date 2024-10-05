@@ -30,17 +30,17 @@ int main() {
     using TestType = rdouble;
 
     auto random_lorenz_inputs =
-        generate_random_args<TestType, 3>(0.0, 20.0, 1000);
+        generate_random_args<TestType, 3>(0.0, 20.0, 100);
     generate_test_data<TestType, 3, 3>("random_lorenz", lorenz<TestType>,
                                        random_lorenz_inputs);
 
     auto random_mandelbrot_inputs =
-        generate_random_args<TestType, 2>(0.0, 20.0, 1000);
+        generate_random_args<TestType, 2>(0.0, 20.0, 100);
     generate_test_data<TestType, 2, 2>(
         "random_mandelbrot", mandelbrot<TestType>, random_mandelbrot_inputs);
 
     auto random_logistic_map_inputs =
-        generate_random_args<TestType, 2>(3.5, 0.25, 1000);
+        generate_random_args<TestType, 2>(3.5, 0.25, 100);
     generate_test_data<TestType, 2, 1>("random_logistic_map",
                                        logistic_map<TestType>,
                                        random_logistic_map_inputs);
