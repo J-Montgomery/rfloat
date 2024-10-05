@@ -20,14 +20,14 @@ const std::vector<double> special_cases = {
     std::numeric_limits<double>::quiet_NaN(),
     std::numeric_limits<double>::signaling_NaN()};
 
-template <typename T> std::vector<double> generate_random_doubles(int count) {
+template <typename T> std::vector<T> generate_random_values(std::size_t count) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(std::numeric_limits<T>::min(),
                                          std::numeric_limits<T>::max());
 
-    std::vector<double> random_numbers;
-    for (int i = 0; i < count; ++i) {
+    std::vector<T> random_numbers;
+    for (std::size_t i = 0; i < count; ++i) {
         random_numbers.push_back(dis(gen));
     }
     return random_numbers;
@@ -95,7 +95,7 @@ TEST_P(RMathFunctionTest, FmaTest) {
 
 INSTANTIATE_TEST_SUITE_P(
     RandomNumbers, RMathFunctionTest,
-    ::testing::ValuesIn(generate_random_doubles<double>(100)));
+    ::testing::ValuesIn(generate_random_values<double>(100)));
 class RFloatReproducibilityTest : public ::testing::Test {
   public:
     using TestType = rfloat;

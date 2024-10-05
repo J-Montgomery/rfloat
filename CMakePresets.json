@@ -46,6 +46,17 @@
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
         }
+    },
+    {
+        "name": "debug",
+        "displayName": "Debug config for Clang and GCC",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
+        }
     }
   ]
 }
