@@ -12,6 +12,7 @@
 #include "testdata/random_ceil_testdata.hh"
 #include "testdata/random_floor_testdata.hh"
 #include "testdata/random_fma_testdata.hh"
+#include "testdata/random_sqrt_testdata.hh"
 
 /* Chaotic function tests*/
 const std::size_t steps = 1000;
@@ -91,5 +92,15 @@ TEST(FmaTest, RandomInputs) {
         EXPECT_EQ(results, std::fma(param.inputs[0].underlying_value(),
                                     param.inputs[1].underlying_value(),
                                     param.inputs[2].underlying_value()));
+    }
+}
+
+TEST(SqrtTest, RandomInputs) {
+    auto test_data =
+        ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sqrt_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::sqrt(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::sqrt(param.inputs[0].underlying_value()));
     }
 }
