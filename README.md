@@ -1,12 +1,12 @@
 # **rfloat**
 
-**rfloat** is an experimental header-only library implementing reproducible floating point types
-on existing compilers at minimal performance cost.
+**rfloat** is an experimental header-only library implementing reproducible floating point types with no overhead. Convert existing code with single letter changes.
 
 ## Table of Contents
 - [Overview](#overview)
 - [Usage](#usage)
 - [Platform Support](#platforms)
+- [Comparison](#comparison)
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [Benchmarks](#benchmarks)
@@ -48,11 +48,11 @@ this optimization not guaranteed for all combinations of compiler flags, source 
 
 ## Usage
 
-Use **rfloat** by including the header and replacing usages
+Use **rfloat** by including the `<rfloat>` header and replacing usages
 of `float` & `double` with `rfloat` & `rdouble`. The library has been tested with C++17 through C++23 compilers.
 
 ```
-#include <rfloat/rfloat.hh>
+#include <rfloat>
 rfloat sum(rfloat a, rfloat b) {
     return a + b;
 }
@@ -100,7 +100,7 @@ Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
-Overloads for `<cmath>` functions are provided in the `<rfloat/rcmath.hh>` header under the rmath namespace. Only deterministic subset of overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`. Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
+Overloads for `<cmath>` functions are provided in the `<rcmath>` header under the rmath namespace. Only deterministic subset of overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`. Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
 
 > [!NOTE]
 > If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RMATH_DETERMINISM` when
@@ -113,6 +113,27 @@ Overloads for `<cmath>` functions are provided in the `<rfloat/rcmath.hh>` heade
 | Clang 14/15/16 | Untested | :heavy_check_mark: | :heavy_check_mark: |
 | GCC 11   | Untested | Untested | :heavy_check_mark: |
 | MSVC     | :heavy_check_mark: | Untested | Untested |
+
+
+## Comparison
+### **rfloat goals**
+- Easy to integrate with existing code
+    - Most conversions are an 'r' prefix away
+    - Supports `<cmath>` and `std::numeric_limits`
+- Zero unnecessary overhead
+- Deterministic by default
+    - If it compiles, it should be safe unless the user explicitly opts out
+- Deterministic in all configurations
+    - **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`
+    - LTO support
+- Support modern, IEEE-754 compliant architectures
+    - Non-IEEE-754 platforms are explicitly not supported
+
+### Other libraries
+- [streflop](https://github.com/abma/streflop)
+    - Sensitive to compiler flags
+- [dmath](https://github.com/sixitbb/sixit-dmath)
+    - Imposes additional overhead. Greater overheads for additional features.
 
 ## Limitations
 

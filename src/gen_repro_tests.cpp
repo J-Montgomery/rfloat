@@ -2,8 +2,8 @@
 
 #include "gen_repro_tests.hh"
 #include "rcmath_tests.hh"
-#include <rfloat/rcmath.hh>
-#include <rfloat/rfloat.hh>
+#include <rcmath>
+#include <rfloat>
 
 constexpr std::size_t steps = 1000;
 constexpr double pi = 3.14159265358979323846;

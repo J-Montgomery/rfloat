@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rfloat.hh"
+#include "rfloat"
 #include <cmath>
 
 #if __cpp_lib_constexpr_cmath >= 202202L

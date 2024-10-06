@@ -63,8 +63,7 @@ C**********************************************************************
 /* the following is optional depending on the timing function used */
 #include <time.h>
 
-#include <rfloat/rcmath.hh>
-#include <rfloat/rfloat.hh>
+#include <rcmath>
 
 #define DSIN sin
 #define DCOS cos
