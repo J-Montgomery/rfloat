@@ -59,32 +59,32 @@ std::array<T, 1> check_fma(const std::array<T, 3> &input) {
 
 template <typename T>
 std::array<T, 1> check_isgreater(const std::array<T, 2> &input) {
-    return {rmath::isgreater(input[0], input[1])};
+    return {rmath::isgreater(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 std::array<T, 1> check_isless(const std::array<T, 2> &input) {
-    return {rmath::isless(input[0], input[1])};
+    return {rmath::isless(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 std::array<T, 1> check_islessequal(const std::array<T, 2> &input) {
-    return {rmath::islessequal(input[0], input[1])};
+    return {rmath::islessequal(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 std::array<T, 1> check_isgreaterequal(const std::array<T, 2> &input) {
-    return {rmath::isgreaterequal(input[0], input[1])};
+    return {rmath::isgreaterequal(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 std::array<T, 1> check_islessgreater(const std::array<T, 2> &input) {
-    return {rmath::islessgreater(input[0], input[1])};
+    return {rmath::islessgreater(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
-    return {rmath::isunordered(input[0], input[1])};
+    return {rmath::isunordered(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
