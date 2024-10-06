@@ -26,7 +26,7 @@ class TestDataGenerator {
     std::string generate(const std::vector<InputType> &inputs) {
         std::ostringstream oss;
         oss << "#pragma once\n#include <string>\n\n";
-        oss << "std::string " << m_name << "_testdata = R\"(\n";
+        oss << "static const std::string " << m_name << "_testdata = R\"(\n";
 
         for (const auto &input : inputs) {
             std::ostringstream tmp;

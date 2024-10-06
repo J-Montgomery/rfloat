@@ -20,7 +20,7 @@ template <typename T, std::size_t InputSize, std::size_t OutputSize>
 class ParameterizedTest : public ::testing::Test {
   public:
     static std::vector<TestParam<T, InputSize, OutputSize>>
-    LoadTestData(std::string &data) {
+    LoadTestData(const std::string &data) {
         std::vector<TestParam<T, InputSize, OutputSize>> test_data;
         std::istringstream iss(data);
         std::string line;

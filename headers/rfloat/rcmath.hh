@@ -64,8 +64,9 @@ inline ReproducibleWrapper<T, R> remainder(const ReproducibleWrapper<T, R> &x,
 template <typename T, rounding_mode R>
 FEATURE_CXX23(constexpr)
 inline ReproducibleWrapper<T, R> remquo(const ReproducibleWrapper<T, R> &x,
-                                        const ReproducibleWrapper<T, R> &y) {
-    return ReproducibleWrapper<T, R>(std::remquo(x.value, y.value));
+                                        const ReproducibleWrapper<T, R> &y,
+                                        int *quo) {
+    return ReproducibleWrapper<T, R>(std::remquo(x.value, y.value, quo));
 }
 
 template <typename T, rounding_mode R>
