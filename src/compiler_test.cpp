@@ -2,7 +2,7 @@
 #include <iostream>
 
 #include <array>
-#include <rfloat/rfloat.hh>
+#include <rfloat>
 
 /* This file exists as an easy template to diagnose issues detected by the
  * normal test cases. All the abstractions and namespaces used by GTest make

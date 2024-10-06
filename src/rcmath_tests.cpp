@@ -3,8 +3,8 @@
 #include <random>
 #include <vector>
 
-#include <rfloat/rcmath.hh>
-#include <rfloat/rfloat.hh>
+#include <rcmath>
+#include <rfloat>
 
 #include "rcmath_tests.hh"
 

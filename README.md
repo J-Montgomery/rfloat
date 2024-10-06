@@ -48,11 +48,11 @@ this optimization not guaranteed for all combinations of compiler flags, source 
 
 ## Usage
 
-Use **rfloat** by including the header and replacing usages
+Use **rfloat** by including the `<rfloat>` header and replacing usages
 of `float` & `double` with `rfloat` & `rdouble`. The library has been tested with C++17 through C++23 compilers.
 
 ```
-#include <rfloat/rfloat.hh>
+#include <rfloat>
 rfloat sum(rfloat a, rfloat b) {
     return a + b;
 }
@@ -100,7 +100,7 @@ Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
-Overloads for `<cmath>` functions are provided in the `<rfloat/rcmath.hh>` header under the rmath namespace. Only deterministic subset of overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`. Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
+Overloads for `<cmath>` functions are provided in the `<rcmath>` header under the rmath namespace. Only deterministic subset of overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`. Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
 
 > [!NOTE]
 > If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RMATH_DETERMINISM` when

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD 17)
 project(
     rfloat
     VERSION 0.1.0
@@ -17,7 +17,7 @@ add_custom_target(format COMMAND clang-format-16 -i ${ALL_SOURCE_FILES})
 
 # rfloat
 add_library(rfloat INTERFACE)
-target_include_directories(rfloat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/headers)
+target_include_directories(rfloat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/headers/rfloat)
 
 # Tests
 

@@ -1,6 +1,6 @@
 #include "rcmath_tests.hh"
-#include <rfloat/rcmath.hh>
-#include <rfloat/rfloat.hh>
+#include <rcmath>
+#include <rfloat>
 
 #include "reproducibility_tests.hh"
 
