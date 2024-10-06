@@ -1,12 +1,12 @@
 # **rfloat**
 
-**rfloat** is an experimental header-only library implementing reproducible floating point types
-on existing compilers at minimal performance cost.
+**rfloat** is an experimental header-only library implementing reproducible floating point types with no overhead. Convert existing code with single letter changes.
 
 ## Table of Contents
 - [Overview](#overview)
 - [Usage](#usage)
 - [Platform Support](#platforms)
+- [Comparison](#comparison)
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [Benchmarks](#benchmarks)
@@ -113,6 +113,27 @@ Overloads for `<cmath>` functions are provided in the `<rcmath>` header under th
 | Clang 14/15/16 | Untested | :heavy_check_mark: | :heavy_check_mark: |
 | GCC 11   | Untested | Untested | :heavy_check_mark: |
 | MSVC     | :heavy_check_mark: | Untested | Untested |
+
+
+## Comparison
+### **rfloat goals**
+- Easy to integrate with existing code
+    - Most conversions are an 'r' prefix away
+    - Supports `<cmath>` and `std::numeric_limits`
+- Zero unnecessary overhead
+- Deterministic by default
+    - If it compiles, it should be safe unless the user explicitly opts out
+- Deterministic in all configurations
+    - **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`
+    - LTO support
+- Support modern, IEEE-754 compliant architectures
+    - Non-IEEE-754 platforms are explicitly not supported
+
+### Other libraries
+- [streflop](https://github.com/abma/streflop)
+    - Sensitive to compiler flags
+- [dmath](https://github.com/sixitbb/sixit-dmath)
+    - Imposes additional overhead. Greater overheads for additional features.
 
 ## Limitations
 
