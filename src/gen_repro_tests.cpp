@@ -389,7 +389,6 @@ int main() {
                                        check_islessgreater<TestType>,
                                        random_islessgreater_inputs);
 #if defined(RMATH_NONDETERMINISTIC)
-    // exp/log
     auto random_exp_inputs = uniform_random_args<TestType, 1>(100, -10.0, 10.0);
     generate_test_data<TestType, 1, 1>("random_exp", check_exp<TestType>,
                                        random_exp_inputs);
@@ -420,7 +419,6 @@ int main() {
     generate_test_data<TestType, 1, 1>("random_log1p", check_log1p<TestType>,
                                        random_log1p_inputs);
 
-    // trig functions
     auto random_sin_inputs = uniform_random_args<TestType, 1>(100, 0.0, pi);
     generate_test_data<TestType, 1, 1>("random_sin", check_sin<TestType>,
                                        random_sin_inputs);
@@ -457,7 +455,6 @@ int main() {
     generate_test_data<TestType, 2, 1>("random_hypot", check_hypot<TestType>,
                                        random_hypot_inputs);
 
-    // hyperbolic functions
     auto random_sinh_inputs =
         uniform_random_args<TestType, 1>(100, -pi * 2.0, pi * 2.0);
     generate_test_data<TestType, 1, 1>("random_sinh", check_sinh<TestType>,
@@ -487,7 +484,7 @@ int main() {
         uniform_random_args<TestType, 1>(100, -pi / 2.0, pi / 2.0);
     generate_test_data<TestType, 1, 1>("random_atanh", check_atanh<TestType>,
                                        random_atanh_inputs);
-    // powers
+
     auto random_cbrt_inputs = uniform_random_args<TestType, 1>(100, 0.0);
     generate_test_data<TestType, 1, 1>("random_cbrt", check_cbrt<TestType>,
                                        random_cbrt_inputs);
@@ -495,7 +492,6 @@ int main() {
     generate_test_data<TestType, 2, 1>("random_pow", check_pow<TestType>,
                                        random_pow_inputs);
 
-    // advanced functions
     auto random_erf_inputs = uniform_random_args<TestType, 1>(100, -5.0, 5.0);
     generate_test_data<TestType, 1, 1>("random_erf", check_erf<TestType>,
                                        random_erf_inputs);

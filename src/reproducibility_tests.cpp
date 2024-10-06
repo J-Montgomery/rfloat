@@ -62,7 +62,7 @@
 #include "testdata/random_tgamma_testdata.hh"
 #include "testdata/random_trunc_testdata.hh"
 
-/* Chaotic function tests*/
+// Chaotic function tests
 const std::size_t steps = 1000;
 
 TEST(ChaoticFunctionTest, RandomInputsLorenz) {
@@ -96,7 +96,7 @@ TEST(ChaoticFunctionTest, RandomInputsLogisticMap) {
     }
 }
 
-/* rcmath tests */
+// rcmath tests
 TEST(IntegerTests, RandomInputsFloor) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_floor_testdata);
@@ -157,7 +157,6 @@ TEST(IntegerTests, RandomInputsRint) {
     }
 }
 
-// Basic functions
 TEST(BasicTest, RandomInputsAbs) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_abs_testdata);
@@ -202,7 +201,6 @@ TEST(BasicTest, RandomInputsNextAfter) {
     }
 }
 
-// nexttoward
 TEST(BasicTest, RandomInputsNextToward) {
     auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
         random_nexttoward_testdata);
@@ -214,7 +212,6 @@ TEST(BasicTest, RandomInputsNextToward) {
     }
 }
 
-// fmod
 TEST(BasicTest, RandomInputsFmod) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_fmod_testdata);
@@ -226,7 +223,6 @@ TEST(BasicTest, RandomInputsFmod) {
     }
 }
 
-// remainder
 TEST(BasicTest, RandomInputsRemainder) {
     auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
         random_remainder_testdata);
@@ -238,7 +234,6 @@ TEST(BasicTest, RandomInputsRemainder) {
     }
 }
 
-// fdim
 TEST(BasicTest, RandomInputsFdim) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_fdim_testdata);
@@ -250,7 +245,6 @@ TEST(BasicTest, RandomInputsFdim) {
     }
 }
 
-// fmax
 TEST(BasicTest, RandomInputsFmax) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_fmax_testdata);
@@ -262,7 +256,6 @@ TEST(BasicTest, RandomInputsFmax) {
     }
 }
 
-// fmin
 TEST(BasicTest, RandomInputsFmin) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_fmin_testdata);
@@ -274,7 +267,6 @@ TEST(BasicTest, RandomInputsFmin) {
     }
 }
 
-// Comparison tests
 TEST(ComparisonTestsTest, RandomIsGreater) {
     auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
         random_isgreater_testdata);
@@ -372,7 +364,6 @@ TEST(IOStreamTests, RandomSmallInputs) {
 }
 
 #if defined(RMATH_NONDETERMINISTIC)
-// Trig functions
 TEST(TrigTests, RandomSin) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sin_testdata);
@@ -444,7 +435,6 @@ TEST(TrigTests, RandomAtan2) {
     }
 }
 
-// hypot
 TEST(TrigTests, RandomHypot) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_hypot_testdata);
@@ -456,7 +446,6 @@ TEST(TrigTests, RandomHypot) {
     }
 }
 
-// Log/exp functions
 TEST(LogExpTests, RandomLog) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_log_testdata);
@@ -507,7 +496,6 @@ TEST(LogExpTests, RandomExp2) {
     }
 }
 
-// log1p
 TEST(LogExpTests, RandomLog1p) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_log1p_testdata);
@@ -528,7 +516,6 @@ TEST(LogExpTests, RandomExpm1) {
     }
 }
 
-// pow
 TEST(PowTests, RandomPow) {
     auto test_data =
         ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_pow_testdata);
@@ -540,7 +527,6 @@ TEST(PowTests, RandomPow) {
     }
 }
 
-// cbrt
 TEST(PowTests, RandomCbrt) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_cbrt_testdata);
@@ -551,7 +537,6 @@ TEST(PowTests, RandomCbrt) {
     }
 }
 
-// hyperbolic functions
 TEST(HyperbolicTests, RandomSinh) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sinh_testdata);
@@ -612,7 +597,6 @@ TEST(HyperbolicTests, RandomAtanh) {
     }
 }
 
-// erf
 TEST(SpecialTests, RandomErf) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_erf_testdata);
@@ -623,7 +607,6 @@ TEST(SpecialTests, RandomErf) {
     }
 }
 
-// erfc
 TEST(SpecialTests, RandomErfc) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_erfc_testdata);
@@ -634,7 +617,6 @@ TEST(SpecialTests, RandomErfc) {
     }
 }
 
-// tgamma
 TEST(SpecialTests, RandomTgamma) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_tgamma_testdata);
@@ -645,7 +627,6 @@ TEST(SpecialTests, RandomTgamma) {
     }
 }
 
-// lgamma
 TEST(SpecialTests, RandomLgamma) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_lgamma_testdata);
