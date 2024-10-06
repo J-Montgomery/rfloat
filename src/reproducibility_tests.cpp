@@ -21,6 +21,10 @@
 #include "testdata/random_islessequal_testdata.hh"
 #include "testdata/random_islessgreater_testdata.hh"
 
+#include "testdata/random_iostream_large_testdata.hh"
+#include "testdata/random_iostream_medium_testdata.hh"
+#include "testdata/random_iostream_small_testdata.hh"
+
 /* Chaotic function tests*/
 const std::size_t steps = 1000;
 
@@ -181,5 +185,41 @@ TEST(ComparisonTestsTest, RandomIsLessGreater) {
         EXPECT_EQ((results == 1.0),
                   std::islessgreater(param.inputs[0].underlying_value(),
                                      param.inputs[1].underlying_value()));
+    }
+}
+
+TEST(IOStreamTests, RandomLargeInputs) {
+    auto test_data = ParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_iostream_large_testdata);
+    for (const auto &param : test_data) {
+        std::stringstream ss;
+        ss << std::setprecision(17) << param.inputs[0];
+        rdouble result;
+        ss >> result;
+        EXPECT_EQ(result, param.expected_outputs[0]);
+    }
+}
+
+TEST(IOStreamTests, RandomMediumInputs) {
+    auto test_data = ParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_iostream_medium_testdata);
+    for (const auto &param : test_data) {
+        std::stringstream ss;
+        ss << std::setprecision(17) << param.inputs[0];
+        rdouble result;
+        ss >> result;
+        EXPECT_EQ(result, param.expected_outputs[0]);
+    }
+}
+
+TEST(IOStreamTests, RandomSmallInputs) {
+    auto test_data = ParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_iostream_small_testdata);
+    for (const auto &param : test_data) {
+        std::stringstream ss;
+        ss << std::setprecision(17) << param.inputs[0];
+        rdouble result;
+        ss >> result;
+        EXPECT_EQ(result, param.expected_outputs[0]);
     }
 }

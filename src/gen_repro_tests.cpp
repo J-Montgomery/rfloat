@@ -87,6 +87,15 @@ std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
     return {rmath::isunordered(input[0], input[1])};
 }
 
+template <typename T>
+std::array<T, 1> check_iostream_operators(const std::array<T, 1> &input) {
+    std::stringstream ss;
+    ss << std::setprecision(17) << input[0];
+    T result;
+    ss >> result;
+    return {result};
+}
+
 int main() {
     using TestType = rdouble;
 
@@ -151,5 +160,25 @@ int main() {
     generate_test_data<TestType, 2, 1>("random_logistic_map",
                                        logistic_map<TestType>,
                                        random_logistic_map_inputs);
+
+    // Implementation validation tests
+    auto random_iostream_large_inputs = uniform_random_args<TestType, 1>(
+        100, std::numeric_limits<typename TestType::underlying_type>::min(),
+        std::numeric_limits<typename TestType::underlying_type>::max());
+    auto random_iostream_medium_inputs = uniform_random_args<TestType, 1>(100);
+    auto random_iostream_small_inputs = uniform_random_args<TestType, 1>(
+        100, std::numeric_limits<typename TestType::underlying_type>::min(),
+        0.00000001);
+    generate_test_data<TestType, 1, 1>("random_iostream_large",
+                                       check_iostream_operators<TestType>,
+                                       random_iostream_large_inputs);
+    generate_test_data<TestType, 1, 1>("random_iostream_medium",
+                                       check_iostream_operators<TestType>,
+                                       random_iostream_medium_inputs);
+
+    generate_test_data<TestType, 1, 1>("random_iostream_small",
+                                       check_iostream_operators<TestType>,
+                                       random_iostream_small_inputs);
+
     return 0;
 }
