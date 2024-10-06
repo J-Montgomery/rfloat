@@ -79,6 +79,20 @@ auto c = a + b; // compile error
 
 Expressions that compile with reproducible types should return the same results under any combination of compiler flags. There should be little to no performance cost beyond the operations themselves.
 
+Reproducible types also allow unwrapping values to interact with existing code.
+
+```
+rfloat a;
+float b = a.underlying_value();
+
+rfloat c;
+rdouble d = c.fp64(); // Casts are allowed as long as they don't lose precision
+
+rdouble e;
+rfloat f = e.fp32(); // Compile error to prevent accidental narrowing
+float f = e.underlying_value(); // Escape hatches exist
+```
+
 Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode.
 
 > [!NOTE]
@@ -86,19 +100,23 @@ Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
+Overloads for `<cmath>` functions are provided in the `<rfloat/rcmath.hh>` header under the rmath namespace. Only deterministic subset of overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`. Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
+
+> [!NOTE]
+> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RMATH_DETERMINISM` when
+> building the reproducibility tests, or by using `--preset debug` during CMake configuration with Clang or GCC.
+
 ## Platforms
 ### Tested Platforms
-- Linux on x64
-- Windows on x64
-- MacOS on aarch64
+| Support | Windows x64 | MacOS M1 | Linux x64 |
+|---------|---------|-------|-------|
+| Clang 14/15/16 | Untested | :heavy_check_mark: | :heavy_check_mark: |
+| GCC 11   | Untested | Untested | :heavy_check_mark: |
+| MSVC     | :heavy_check_mark: | Untested | Untested |
 
 ## Limitations
 
-- `<cmath>` is not supported. The `<rfloat/rcmath.hh>` header is provided with overloads
-for a safe subset of cmath. If this isn't sufficient, [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm) are recommended.
-- Unwrapping a reproducible type with `.fp64()` and related functions will allow you to
-write non-deterministic code with the result. Use these functions with caution.
-- This library prohibits many compiler optimizations on code using reproducible types. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime.
+- This library prohibits some compiler optimizations on code using reproducible types. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime.
 - Ensuring the environment has the correct rounding mode is left up to the user.
 
 ## Issues

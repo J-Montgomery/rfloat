@@ -320,6 +320,21 @@ TEST_F(InterfaceTest, check_underlying_value) {
     EXPECT_EQ(rd1.underlying_value(), d1);
 }
 
+TEST_F(InterfaceTest, check_conversion_docs) {
+    rfloat a(f1);
+    float b = a.underlying_value();
+    EXPECT_EQ(b, f1);
+
+    rfloat c(f1);
+    rdouble d =
+        c.fp64(); // Casts are allowed as long as they don't lose precision
+    EXPECT_EQ(d, f1);
+
+    rdouble e(f1);
+    float f = e.underlying_value();
+    EXPECT_EQ(f, f1);
+}
+
 // This test shouldn't compile
 // TEST_F(InterfaceTest, check_downcasts_prohibited) {
 //     rdouble a(d1);
