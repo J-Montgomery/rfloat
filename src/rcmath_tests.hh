@@ -16,11 +16,11 @@ static T iir_filter(const std::vector<T>& ffw_coeff, const std::vector<T>& fb_co
 
     T output = 0;
 
-    for (size_t i = 0; i < ffw_coeff.size(); ++i) {
+    for (std::size_t i = 0; i < ffw_coeff.size(); ++i) {
         output += ffw_coeff[i] * input_hist[i];
     }
 
-    for (size_t i = 1; i < fb_coeff.size(); ++i) {
+    for (std::size_t i = 1; i < fb_coeff.size(); ++i) {
         output -= fb_coeff[i] * output_hist[i - 1];
     }
 
@@ -31,7 +31,7 @@ static T iir_filter(const std::vector<T>& ffw_coeff, const std::vector<T>& fb_co
 
 static T fir_filter(const std::vector<T>& coeff, std::vector<T>& input_hist, std::vector<T>& output_hist) {
     T output = 0;
-    for (size_t i = 0; i < coeff.size(); ++i) {
+    for (std::size_t i = 0; i < coeff.size(); ++i) {
         output += coeff[i] * input_hist[i];
     }
     output_hist.insert(output_hist.begin(), output);

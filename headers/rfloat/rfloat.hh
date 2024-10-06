@@ -164,6 +164,8 @@ class ReproducibleWrapper {
     // operator float() const = delete;
     // operator double() const = delete;
 
+    constexpr inline T underlying_value() const { return value; }
+
     constexpr inline double fp64() const { return static_cast<double>(value); }
 
     template <typename T2 = T, typename = typename std::enable_if_t<
@@ -406,3 +408,4 @@ static_assert(std::is_trivial<rdouble>::value &&
 
 #undef OPT_BARRIER
 #undef SAFE_BINOP
+#undef FEATURE_CXX20
