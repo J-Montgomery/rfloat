@@ -308,6 +308,18 @@ TEST_F(InterfaceTest, check_float_unary_operations) {
     EXPECT_EQ(-b, c);
 }
 
+TEST_F(InterfaceTest, check_underlying_value) {
+    rfloat rf1(f1);
+    rdouble rd1(d1);
+
+    static_assert(std::is_same<decltype(rf1.underlying_value()), float>::value);
+    static_assert(
+        std::is_same<decltype(rd1.underlying_value()), double>::value);
+
+    EXPECT_EQ(rf1.underlying_value(), f1);
+    EXPECT_EQ(rd1.underlying_value(), d1);
+}
+
 // This test shouldn't compile
 // TEST_F(InterfaceTest, check_downcasts_prohibited) {
 //     rdouble a(d1);

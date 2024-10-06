@@ -2,6 +2,7 @@
 
 #include "gen_repro_tests.hh"
 #include "rcmath_tests.hh"
+#include <rfloat/rcmath.hh>
 #include <rfloat/rfloat.hh>
 
 constexpr std::size_t steps = 1000;
@@ -26,21 +27,68 @@ std::array<T, 1> logistic_map(const std::array<T, 2> &input) {
     return {result};
 }
 
+template <typename T> std::array<T, 1> abs(const std::array<T, 1> &input) {
+    return {rmath::abs(input[0])};
+}
+
+template <typename T> std::array<T, 1> sqrt(const std::array<T, 1> &input) {
+    return {rmath::sqrt(input[0])};
+}
+
+template <typename T> std::array<T, 1> ceil(const std::array<T, 1> &input) {
+    return {rmath::ceil(input[0])};
+}
+
+template <typename T> std::array<T, 1> floor(const std::array<T, 1> &input) {
+    return {rmath::floor(input[0])};
+}
+
+template <typename T> std::array<T, 1> round(const std::array<T, 1> &input) {
+    return {rmath::round(input[0])};
+}
+
+template <typename T> std::array<T, 1> fma(const std::array<T, 3> &input) {
+    return {rmath::fma(input[0], input[1], input[2])};
+}
+
 int main() {
     using TestType = rdouble;
 
-    auto random_lorenz_inputs =
-        generate_random_args<TestType, 3>(0.0, 20.0, 100);
+    auto random_abs_inputs = uniform_random_args<TestType, 1>(100);
+    generate_test_data<TestType, 1, 1>("random_abs", abs<TestType>,
+                                       random_abs_inputs);
+
+    auto random_sqrt_inputs = uniform_random_args<TestType, 1>(100);
+    generate_test_data<TestType, 1, 1>("random_sqrt", sqrt<TestType>,
+                                       random_sqrt_inputs);
+
+    auto random_ceil_inputs = uniform_random_args<TestType, 1>(100);
+    generate_test_data<TestType, 1, 1>("random_ceil", ceil<TestType>,
+                                       random_ceil_inputs);
+
+    auto random_floor_inputs = uniform_random_args<TestType, 1>(100);
+    generate_test_data<TestType, 1, 1>("random_floor", floor<TestType>,
+                                       random_floor_inputs);
+
+    auto random_round_inputs = uniform_random_args<TestType, 1>(100);
+    generate_test_data<TestType, 1, 1>("random_round", round<TestType>,
+                                       random_round_inputs);
+
+    auto random_fma_inputs = normal_random_args<TestType, 3>(100, 0.0, 3000.0);
+    generate_test_data<TestType, 3, 1>("random_fma", fma<TestType>,
+                                       random_fma_inputs);
+
+    auto random_lorenz_inputs = normal_random_args<TestType, 3>(100, 0.0, 20.0);
     generate_test_data<TestType, 3, 3>("random_lorenz", lorenz<TestType>,
                                        random_lorenz_inputs);
 
     auto random_mandelbrot_inputs =
-        generate_random_args<TestType, 2>(0.0, 20.0, 100);
+        normal_random_args<TestType, 2>(100, 0.0, 20.0);
     generate_test_data<TestType, 2, 2>(
         "random_mandelbrot", mandelbrot<TestType>, random_mandelbrot_inputs);
 
     auto random_logistic_map_inputs =
-        generate_random_args<TestType, 2>(3.5, 0.25, 100);
+        normal_random_args<TestType, 2>(100, 3.5, 0.25);
     generate_test_data<TestType, 2, 1>("random_logistic_map",
                                        logistic_map<TestType>,
                                        random_logistic_map_inputs);

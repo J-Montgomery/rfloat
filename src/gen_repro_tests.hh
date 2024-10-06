@@ -87,7 +87,19 @@ void generate_test_data(
     }
 }
 
-template <typename T> std::vector<T> generate_random_list(typename T::underlying_type mean, typename T::underlying_type stddev, std::size_t count) {
+template <typename T> std::vector<T> generate_uniform_random_list(typename T::underlying_type min, typename T::underlying_type max, std::size_t count) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(min, max);
+
+    std::vector<T> random_numbers;
+    for (std::size_t i = 0; i < count; ++i) {
+        random_numbers.push_back(static_cast<T>(dis(gen)));
+    }
+    return random_numbers;
+}
+
+template <typename T> std::vector<T> generate_normal_random_list(typename T::underlying_type mean, typename T::underlying_type stddev, std::size_t count) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::normal_distribution<> dis(mean, stddev);
@@ -100,7 +112,7 @@ template <typename T> std::vector<T> generate_random_list(typename T::underlying
 }
 
 template<typename T>
-std::vector<T> select_random_combination(const std::vector<T>& collection, std::size_t count) {
+std::vector<T> generate_selected_random_list(const std::vector<T>& collection, std::size_t count) {
     if (collection.size() < count) {
         throw std::invalid_argument("Not enough special values provided");
     }
@@ -121,12 +133,25 @@ std::vector<T> select_random_combination(const std::vector<T>& collection, std::
 }
 
 template <typename T, std::size_t InputSize> 
-std::vector<std::array<T, InputSize>> generate_random_args(typename T::underlying_type mean, typename T::underlying_type stddev, std::size_t count) {
+std::vector<std::array<T, InputSize>> uniform_random_args(std::size_t count, typename T::underlying_type min = -1e9, typename T::underlying_type max = 1e9) {
     std::vector<std::array<T, InputSize>> inputs;
     inputs.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
         std::array<T, InputSize> input;
-        auto result = generate_random_list<T>(mean, stddev, InputSize);
+        auto result = generate_uniform_random_list<T>(min, max, InputSize);
+        std::copy(result.begin(), result.end(), input.begin());
+        inputs.push_back(input);
+    }
+    return inputs;
+}
+
+template <typename T, std::size_t InputSize>
+std::vector<std::array<T, InputSize>> normal_random_args(std::size_t count, typename T::underlying_type mean, typename T::underlying_type stddev) {
+    std::vector<std::array<T, InputSize>> inputs;
+    inputs.reserve(count);
+    for (std::size_t i = 0; i < count; ++i) {
+        std::array<T, InputSize> input;
+        auto result = generate_normal_random_list<T>(mean, stddev, InputSize);
         std::copy(result.begin(), result.end(), input.begin());
         inputs.push_back(input);
     }
@@ -134,12 +159,12 @@ std::vector<std::array<T, InputSize>> generate_random_args(typename T::underlyin
 }
 
 template <typename T, std::size_t InputSize> 
-std::vector<std::array<T, InputSize>> generate_random_selected_args(const std::vector<T>& collection, std::size_t count) {
+std::vector<std::array<T, InputSize>> selected_random_args(const std::vector<T>& collection, std::size_t count) {
     std::vector<std::array<T, InputSize>> inputs;
     inputs.reserve(count);
     for (std::size_t i = 0; i < count; ++i) {
         std::array<T, InputSize> input;
-        auto result = select_random_combination<T>(collection, InputSize);
+        auto result = generate_selected_random_list<T>(collection, InputSize);
         std::copy(result.begin(), result.end(), input.begin());
         inputs.push_back(input);
     }

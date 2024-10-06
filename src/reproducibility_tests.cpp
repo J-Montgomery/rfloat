@@ -5,11 +5,17 @@
 #include <vector>
 
 #include "rcmath_tests.hh"
+#include <rfloat/rcmath.hh>
 #include <rfloat/rfloat.hh>
 
 #include "testdata/random_logistic_map_testdata.hh"
 #include "testdata/random_lorenz_testdata.hh"
 #include "testdata/random_mandelbrot_testdata.hh"
+
+#include "testdata/random_abs_testdata.hh"
+#include "testdata/random_ceil_testdata.hh"
+#include "testdata/random_floor_testdata.hh"
+#include "testdata/random_fma_testdata.hh"
 
 // Infrastructure to read lines of test data from the headers
 // included above and parsed into TestParam objects. Each line is a single test
@@ -68,7 +74,7 @@ class HeaderParameterizedTest : public ::testing::Test {
     }
 };
 
-/* Tests*/
+/* Chaotic function tests*/
 const std::size_t steps = 1000;
 
 TEST(LorenzTest, RandomInputs) {
@@ -102,5 +108,49 @@ TEST(LogisticMapTest, RandomInputs) {
         auto results = TestFunctions<rdouble>::logistic_map(
             param.inputs[0], param.inputs[1] / 4.0, steps);
         EXPECT_EQ(results, param.expected_outputs[0]);
+    }
+}
+
+/* rcmath tests */
+TEST(AbsTest, RandomInputs) {
+    auto test_data = HeaderParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_abs_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::abs(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::abs(param.inputs[0].underlying_value()));
+    }
+}
+
+TEST(FloorTest, RandomInputs) {
+    auto test_data = HeaderParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_floor_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::floor(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::floor(param.inputs[0].underlying_value()));
+    }
+}
+
+TEST(CeilTest, RandomInputs) {
+    auto test_data = HeaderParameterizedTest<rdouble, 1, 1>::LoadTestData(
+        random_ceil_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::ceil(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::ceil(param.inputs[0].underlying_value()));
+    }
+}
+
+TEST(FmaTest, RandomInputs) {
+    auto test_data = HeaderParameterizedTest<rdouble, 3, 1>::LoadTestData(
+        random_fma_testdata);
+    for (const auto &param : test_data) {
+        auto results =
+            rmath::fma(param.inputs[0], param.inputs[1], param.inputs[2]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::fma(param.inputs[0].underlying_value(),
+                                    param.inputs[1].underlying_value(),
+                                    param.inputs[2].underlying_value()));
     }
 }
