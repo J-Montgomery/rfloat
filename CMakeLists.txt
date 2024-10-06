@@ -28,7 +28,7 @@ target_sources(rfloat_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rfloat_tests
 
 add_executable(rcmath_tests)
 target_link_libraries(rcmath_tests GTest::gtest_main rfloat)
-target_compile_options(rcmath_tests PRIVATE ${COMPILE_OPTIONS} -DRMATH_NONDETERMINISTIC)
+target_compile_options(rcmath_tests PRIVATE ${COMPILE_OPTIONS} -DRMATH_NONDETERMINISTIC -D__STDCPP_WANT_MATH_SPEC_FUNCS__)
 target_sources(rcmath_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/rcmath_tests.cpp)
 
 add_executable(reproducibility_tests)

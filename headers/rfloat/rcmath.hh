@@ -381,7 +381,137 @@ FEATURE_CXX26(constexpr)
 inline ReproducibleWrapper<T, R> lgamma(const ReproducibleWrapper<T, R> &x) {
     return ReproducibleWrapper<T, R>(std::lgamma(x.value));
 }
-#endif
+
+#if __STDCPP_MATH_SPEC_FUNCS__ >= 201003L &&                                   \
+    defined(__STDCPP_WANT_MATH_SPEC_FUNCS__)
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> assoc_laguerre(const unsigned int n,
+                                         const unsigned int m,
+                                         const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::assoc_laguerre(n, m, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> assoc_legendre(const unsigned int n,
+                                         const unsigned int m,
+                                         const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::assoc_legendre(n, m, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> beta(const ReproducibleWrapper<T, R> &x,
+                               const ReproducibleWrapper<T, R> &y) {
+    return ReproducibleWrapper<T, R>(std::beta(x.value, y.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> comp_ellint_1(const ReproducibleWrapper<T, R> &k) {
+    return ReproducibleWrapper<T, R>(std::comp_ellint_1(k.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> comp_ellint_2(const ReproducibleWrapper<T, R> &k) {
+    return ReproducibleWrapper<T, R>(std::comp_ellint_2(k.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> comp_ellint_3(const ReproducibleWrapper<T, R> &k,
+                                        const ReproducibleWrapper<T, R> &nu) {
+    return ReproducibleWrapper<T, R>(std::comp_ellint_3(k.value, nu.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> cyl_bessel_i(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::cyl_bessel_i(nu.value, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> cyl_bessel_j(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::cyl_bessel_j(nu.value, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> cyl_bessel_k(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::cyl_bessel_k(nu.value, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> cyl_neumann(const ReproducibleWrapper<T, R> &nu,
+                                      const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::cyl_neumann(nu.value, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> ellint_1(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return ReproducibleWrapper<T, R>(std::ellint_1(k.value, phi.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> ellint_2(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return ReproducibleWrapper<T, R>(std::ellint_2(k.value, phi.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> ellint_3(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &nu,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return ReproducibleWrapper<T, R>(
+        std::ellint_3(k.value, nu.value, phi.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> expint(const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::expint(x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> hermite(const unsigned int n,
+                                  const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::hermite(n, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> legendre(const unsigned int n,
+                                   const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::legendre(n, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> laguerre(const unsigned int n,
+                                   const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::laguerre(n, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> riemann_zeta(const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::riemann_zeta(x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> sph_bessel(const unsigned int n,
+                                     const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::sph_bessel(n, x.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> sph_legendre(const unsigned int n,
+                                       const unsigned int m,
+                                       const ReproducibleWrapper<T, R> &theta) {
+    return ReproducibleWrapper<T, R>(std::sph_legendre(n, m, theta.value));
+}
+
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> sph_neumann(const unsigned int n,
+                                      const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::sph_neumann(n, x.value));
+}
+#endif /* defined(__STDCPP_WANT_MATH_SPEC_FUNCS__) */
+#endif /* defined(RMATH_NONDETERMINISTIC) */
 
 } // namespace rmath
 #undef FEATURE_CXX23
