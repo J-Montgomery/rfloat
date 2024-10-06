@@ -31,7 +31,6 @@ const std::size_t steps = 1000;
 TEST(ChaoticFunctionTest, RandomInputsLorenz) {
     auto test_data =
         ParameterizedTest<rdouble, 3, 3>::LoadTestData(random_lorenz_testdata);
-    using tf = TestFunctions<rdouble>;
     for (const auto &param : test_data) {
         auto results = TestFunctions<rdouble>::lorenz(param.inputs, steps);
         EXPECT_EQ(results, param.expected_outputs);
@@ -41,7 +40,6 @@ TEST(ChaoticFunctionTest, RandomInputsLorenz) {
 TEST(ChaoticFunctionTest, RandomInputsMandelbrot) {
     auto test_data = ParameterizedTest<rdouble, 2, 2>::LoadTestData(
         random_mandelbrot_testdata);
-    using tf = TestFunctions<rdouble>;
     for (const auto &param : test_data) {
         auto results = TestFunctions<rdouble>::mandelbrot(param.inputs, steps);
         EXPECT_EQ(results, param.expected_outputs);
@@ -51,7 +49,6 @@ TEST(ChaoticFunctionTest, RandomInputsMandelbrot) {
 TEST(ChaoticFunctionTest, RandomInputsLogisticMap) {
     auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
         random_logistic_map_testdata);
-    using tf = TestFunctions<rdouble>;
     for (const auto &param : test_data) {
         // We divide the x parameter by 4 on both sides because the random
         // numbers are generated with a distribution centered on 3.5 and x
