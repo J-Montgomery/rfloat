@@ -27,27 +27,33 @@ std::array<T, 1> logistic_map(const std::array<T, 2> &input) {
     return {result};
 }
 
-template <typename T> std::array<T, 1> abs(const std::array<T, 1> &input) {
+template <typename T>
+std::array<T, 1> check_abs(const std::array<T, 1> &input) {
     return {rmath::abs(input[0])};
 }
 
-template <typename T> std::array<T, 1> sqrt(const std::array<T, 1> &input) {
+template <typename T>
+std::array<T, 1> check_sqrt(const std::array<T, 1> &input) {
     return {rmath::sqrt(input[0])};
 }
 
-template <typename T> std::array<T, 1> ceil(const std::array<T, 1> &input) {
+template <typename T>
+std::array<T, 1> check_ceil(const std::array<T, 1> &input) {
     return {rmath::ceil(input[0])};
 }
 
-template <typename T> std::array<T, 1> floor(const std::array<T, 1> &input) {
+template <typename T>
+std::array<T, 1> check_floor(const std::array<T, 1> &input) {
     return {rmath::floor(input[0])};
 }
 
-template <typename T> std::array<T, 1> round(const std::array<T, 1> &input) {
+template <typename T>
+std::array<T, 1> check_round(const std::array<T, 1> &input) {
     return {rmath::round(input[0])};
 }
 
-template <typename T> std::array<T, 1> fma(const std::array<T, 3> &input) {
+template <typename T>
+std::array<T, 1> check_fma(const std::array<T, 3> &input) {
     return {rmath::fma(input[0], input[1], input[2])};
 }
 
@@ -55,27 +61,27 @@ int main() {
     using TestType = rdouble;
 
     auto random_abs_inputs = uniform_random_args<TestType, 1>(100);
-    generate_test_data<TestType, 1, 1>("random_abs", abs<TestType>,
+    generate_test_data<TestType, 1, 1>("random_abs", check_abs<TestType>,
                                        random_abs_inputs);
 
     auto random_sqrt_inputs = uniform_random_args<TestType, 1>(100);
-    generate_test_data<TestType, 1, 1>("random_sqrt", sqrt<TestType>,
+    generate_test_data<TestType, 1, 1>("random_sqrt", check_sqrt<TestType>,
                                        random_sqrt_inputs);
 
     auto random_ceil_inputs = uniform_random_args<TestType, 1>(100);
-    generate_test_data<TestType, 1, 1>("random_ceil", ceil<TestType>,
+    generate_test_data<TestType, 1, 1>("random_ceil", check_ceil<TestType>,
                                        random_ceil_inputs);
 
     auto random_floor_inputs = uniform_random_args<TestType, 1>(100);
-    generate_test_data<TestType, 1, 1>("random_floor", floor<TestType>,
+    generate_test_data<TestType, 1, 1>("random_floor", check_floor<TestType>,
                                        random_floor_inputs);
 
     auto random_round_inputs = uniform_random_args<TestType, 1>(100);
-    generate_test_data<TestType, 1, 1>("random_round", round<TestType>,
+    generate_test_data<TestType, 1, 1>("random_round", check_round<TestType>,
                                        random_round_inputs);
 
     auto random_fma_inputs = normal_random_args<TestType, 3>(100, 0.0, 3000.0);
-    generate_test_data<TestType, 3, 1>("random_fma", fma<TestType>,
+    generate_test_data<TestType, 3, 1>("random_fma", check_fma<TestType>,
                                        random_fma_inputs);
 
     auto random_lorenz_inputs = normal_random_args<TestType, 3>(100, 0.0, 20.0);
