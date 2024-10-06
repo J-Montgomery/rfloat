@@ -12,12 +12,19 @@
 #include "testdata/random_ceil_testdata.hh"
 #include "testdata/random_floor_testdata.hh"
 #include "testdata/random_fma_testdata.hh"
+#include "testdata/random_round_testdata.hh"
 #include "testdata/random_sqrt_testdata.hh"
+
+#include "testdata/random_isgreater_testdata.hh"
+#include "testdata/random_isgreaterequal_testdata.hh"
+#include "testdata/random_isless_testdata.hh"
+#include "testdata/random_islessequal_testdata.hh"
+#include "testdata/random_islessgreater_testdata.hh"
 
 /* Chaotic function tests*/
 const std::size_t steps = 1000;
 
-TEST(LorenzTest, RandomInputs) {
+TEST(ChaoticFunctionTest, RandomInputsLorenz) {
     auto test_data =
         ParameterizedTest<rdouble, 3, 3>::LoadTestData(random_lorenz_testdata);
     using tf = TestFunctions<rdouble>;
@@ -27,7 +34,7 @@ TEST(LorenzTest, RandomInputs) {
     }
 }
 
-TEST(MandelbrotTest, RandomInputs) {
+TEST(ChaoticFunctionTest, RandomInputsMandelbrot) {
     auto test_data = ParameterizedTest<rdouble, 2, 2>::LoadTestData(
         random_mandelbrot_testdata);
     using tf = TestFunctions<rdouble>;
@@ -37,7 +44,7 @@ TEST(MandelbrotTest, RandomInputs) {
     }
 }
 
-TEST(LogisticMapTest, RandomInputs) {
+TEST(ChaoticFunctionTest, RandomInputsLogisticMap) {
     auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
         random_logistic_map_testdata);
     using tf = TestFunctions<rdouble>;
@@ -52,17 +59,7 @@ TEST(LogisticMapTest, RandomInputs) {
 }
 
 /* rcmath tests */
-TEST(AbsTest, RandomInputs) {
-    auto test_data =
-        ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_abs_testdata);
-    for (const auto &param : test_data) {
-        auto results = rmath::abs(param.inputs[0]);
-        EXPECT_EQ(results, param.expected_outputs[0]);
-        EXPECT_EQ(results, std::abs(param.inputs[0].underlying_value()));
-    }
-}
-
-TEST(FloorTest, RandomInputs) {
+TEST(IntegerTests, RandomInputsFloor) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_floor_testdata);
     for (const auto &param : test_data) {
@@ -72,7 +69,7 @@ TEST(FloorTest, RandomInputs) {
     }
 }
 
-TEST(CeilTest, RandomInputs) {
+TEST(IntegerTests, RandomInputsCeil) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_ceil_testdata);
     for (const auto &param : test_data) {
@@ -82,7 +79,28 @@ TEST(CeilTest, RandomInputs) {
     }
 }
 
-TEST(FmaTest, RandomInputs) {
+TEST(IntegerTests, RandomInputsRound) {
+    auto test_data =
+        ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_round_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::round(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::round(param.inputs[0].underlying_value()));
+    }
+}
+
+// Basic functions
+TEST(BasicTest, RandomInputsAbs) {
+    auto test_data =
+        ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_abs_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::abs(param.inputs[0]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ(results, std::abs(param.inputs[0].underlying_value()));
+    }
+}
+
+TEST(BasicTest, RandomInputsFMA) {
     auto test_data =
         ParameterizedTest<rdouble, 3, 1>::LoadTestData(random_fma_testdata);
     for (const auto &param : test_data) {
@@ -95,12 +113,73 @@ TEST(FmaTest, RandomInputs) {
     }
 }
 
-TEST(SqrtTest, RandomInputs) {
+TEST(BasicTest, RandomInputsSqrt) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sqrt_testdata);
     for (const auto &param : test_data) {
         auto results = rmath::sqrt(param.inputs[0]);
         EXPECT_EQ(results, param.expected_outputs[0]);
         EXPECT_EQ(results, std::sqrt(param.inputs[0].underlying_value()));
+    }
+}
+
+// Comparison tests
+TEST(ComparisonTestsTest, RandomIsGreater) {
+    auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
+        random_isgreater_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::isgreater(param.inputs[0], param.inputs[1]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ((results == 1.0),
+                  std::isgreater(param.inputs[0].underlying_value(),
+                                 param.inputs[1].underlying_value()));
+    }
+}
+
+TEST(ComparisonTestsTest, RandomIsGreaterEqual) {
+    auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
+        random_isgreaterequal_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::isgreaterequal(param.inputs[0], param.inputs[1]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ((results == 1.0),
+                  std::isgreaterequal(param.inputs[0].underlying_value(),
+                                      param.inputs[1].underlying_value()));
+    }
+}
+
+TEST(ComparisonTestsTest, RandomIsLess) {
+    auto test_data =
+        ParameterizedTest<rdouble, 2, 1>::LoadTestData(random_isless_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::isless(param.inputs[0], param.inputs[1]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ((results == 1.0),
+                  std::isless(param.inputs[0].underlying_value(),
+                              param.inputs[1].underlying_value()));
+    }
+}
+
+TEST(ComparisonTestsTest, RandomIsLessEqual) {
+    auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
+        random_islessequal_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::islessequal(param.inputs[0], param.inputs[1]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ((results == 1.0),
+                  std::islessequal(param.inputs[0].underlying_value(),
+                                   param.inputs[1].underlying_value()));
+    }
+}
+
+TEST(ComparisonTestsTest, RandomIsLessGreater) {
+    auto test_data = ParameterizedTest<rdouble, 2, 1>::LoadTestData(
+        random_islessgreater_testdata);
+    for (const auto &param : test_data) {
+        auto results = rmath::islessgreater(param.inputs[0], param.inputs[1]);
+        EXPECT_EQ(results, param.expected_outputs[0]);
+        EXPECT_EQ((results == 1.0),
+                  std::islessgreater(param.inputs[0].underlying_value(),
+                                     param.inputs[1].underlying_value()));
     }
 }

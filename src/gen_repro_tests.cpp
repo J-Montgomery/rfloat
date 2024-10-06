@@ -57,6 +57,36 @@ std::array<T, 1> check_fma(const std::array<T, 3> &input) {
     return {rmath::fma(input[0], input[1], input[2])};
 }
 
+template <typename T>
+std::array<T, 1> check_isgreater(const std::array<T, 2> &input) {
+    return {rmath::isgreater(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_isless(const std::array<T, 2> &input) {
+    return {rmath::isless(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_islessequal(const std::array<T, 2> &input) {
+    return {rmath::islessequal(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_isgreaterequal(const std::array<T, 2> &input) {
+    return {rmath::isgreaterequal(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_islessgreater(const std::array<T, 2> &input) {
+    return {rmath::islessgreater(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
+    return {rmath::isunordered(input[0], input[1])};
+}
+
 int main() {
     using TestType = rdouble;
 
@@ -84,10 +114,33 @@ int main() {
     generate_test_data<TestType, 3, 1>("random_fma", check_fma<TestType>,
                                        random_fma_inputs);
 
+    auto random_isgreater_inputs = uniform_random_args<TestType, 2>(100);
+    generate_test_data<TestType, 2, 1>(
+        "random_isgreater", check_isgreater<TestType>, random_isgreater_inputs);
+
+    auto random_isless_inputs = uniform_random_args<TestType, 2>(100);
+    generate_test_data<TestType, 2, 1>("random_isless", check_isless<TestType>,
+                                       random_isless_inputs);
+
+    auto random_islessequal_inputs = uniform_random_args<TestType, 2>(100);
+    generate_test_data<TestType, 2, 1>("random_islessequal",
+                                       check_islessequal<TestType>,
+                                       random_islessequal_inputs);
+
+    auto random_isgreaterequal_inputs = uniform_random_args<TestType, 2>(100);
+    generate_test_data<TestType, 2, 1>("random_isgreaterequal",
+                                       check_isgreaterequal<TestType>,
+                                       random_isgreaterequal_inputs);
+
+    auto random_islessgreater_inputs = uniform_random_args<TestType, 2>(100);
+    generate_test_data<TestType, 2, 1>("random_islessgreater",
+                                       check_islessgreater<TestType>,
+                                       random_islessgreater_inputs);
+
+    // Chaotic function tests
     auto random_lorenz_inputs = normal_random_args<TestType, 3>(100, 0.0, 20.0);
     generate_test_data<TestType, 3, 3>("random_lorenz", lorenz<TestType>,
                                        random_lorenz_inputs);
-
     auto random_mandelbrot_inputs =
         normal_random_args<TestType, 2>(100, 0.0, 20.0);
     generate_test_data<TestType, 2, 2>(
