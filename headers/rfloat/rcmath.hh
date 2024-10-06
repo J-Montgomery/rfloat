@@ -17,9 +17,8 @@
 
 namespace rmath {
 
-/* These functions are generally reproducible as implemented in
- * standard libraries
- */
+// The functions exposed by default are usually deterministic
+// in real implementations
 
 template <typename T, rounding_mode R>
 FEATURE_CXX23(constexpr)
@@ -201,6 +200,59 @@ FEATURE_CXX23(constexpr)
 bool isunordered(const ReproducibleWrapper<T, R> &x,
                  const ReproducibleWrapper<T, R> &y) {
     return std::isunordered(x.value, y.value);
+}
+
+// Manipulation functions
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> frexp(const ReproducibleWrapper<T, R> &x, int *exp) {
+    return ReproducibleWrapper<T, R>(std::frexp(x.value, exp));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> ldexp(const ReproducibleWrapper<T, R> &x, int exp) {
+    return ReproducibleWrapper<T, R>(std::ldexp(x.value, exp));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> modf(const ReproducibleWrapper<T, R> &x,
+                               ReproducibleWrapper<T, R> *exp) {
+    return ReproducibleWrapper<T, R>(std::modf(x.value, &exp->value));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> scalbn(const ReproducibleWrapper<T, R> &x, int exp) {
+    return ReproducibleWrapper<T, R>(std::scalbn(x.value, exp));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+int ilogb(const ReproducibleWrapper<T, R> &x) {
+    return std::ilogb(x.value);
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> logb(const ReproducibleWrapper<T, R> &x) {
+    return ReproducibleWrapper<T, R>(std::logb(x.value));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> nextafter(const ReproducibleWrapper<T, R> &from,
+                                    const ReproducibleWrapper<T, R> &to) {
+    return ReproducibleWrapper<T, R>(std::nextafter(from.value, to.value));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> copysign(const ReproducibleWrapper<T, R> &mag,
+                                   const ReproducibleWrapper<T, R> &sign) {
+    return ReproducibleWrapper<T, R>(std::copysign(mag.value, sign.value));
 }
 
 #if defined(RMATH_NONDETERMINISTIC)
