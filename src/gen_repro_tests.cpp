@@ -33,6 +33,26 @@ std::array<T, 1> check_abs(const std::array<T, 1> &input) {
 }
 
 template <typename T>
+std::array<T, 1> check_fmod(const std::array<T, 2> &input) {
+    return {rmath::fmod(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_fmin(const std::array<T, 2> &input) {
+    return {rmath::fmin(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_fmax(const std::array<T, 2> &input) {
+    return {rmath::fmax(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_fdim(const std::array<T, 2> &input) {
+    return {rmath::fdim(input[0], input[1])};
+}
+
+template <typename T>
 std::array<T, 1> check_sqrt(const std::array<T, 1> &input) {
     return {rmath::sqrt(input[0])};
 }
@@ -50,6 +70,21 @@ std::array<T, 1> check_floor(const std::array<T, 1> &input) {
 template <typename T>
 std::array<T, 1> check_round(const std::array<T, 1> &input) {
     return {rmath::round(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_trunc(const std::array<T, 1> &input) {
+    return {rmath::trunc(input[0])};
+}
+
+template <typename T>
+std::array<T, 2> check_remquo(const std::array<T, 2> &input) {
+    return {rmath::remquo(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_remainder(const std::array<T, 2> &input) {
+    return {rmath::remainder(input[0], input[1])};
 }
 
 template <typename T>
@@ -85,6 +120,126 @@ std::array<T, 1> check_islessgreater(const std::array<T, 2> &input) {
 template <typename T>
 std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
     return {rmath::isunordered(input[0], input[1]) ? 1.0 : 0.0};
+}
+
+template <typename T>
+std::array<T, 1> check_sin(const std::array<T, 1> &input) {
+    return {rmath::sin(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_cos(const std::array<T, 1> &input) {
+    return {rmath::cos(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_tan(const std::array<T, 1> &input) {
+    return {rmath::tan(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_asin(const std::array<T, 1> &input) {
+    return {rmath::asin(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_acos(const std::array<T, 1> &input) {
+    return {rmath::acos(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_atan(const std::array<T, 1> &input) {
+    return {rmath::atan(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_atan2(const std::array<T, 2> &input) {
+    return {rmath::atan2(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_hypot(const std::array<T, 2> &input) {
+    return {rmath::hypot(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_log(const std::array<T, 1> &input) {
+    return {rmath::log(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_log2(const std::array<T, 1> &input) {
+    return {rmath::log2(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_log10(const std::array<T, 1> &input) {
+    return {rmath::log10(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_log1p(const std::array<T, 1> &input) {
+    return {rmath::log1p(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_exp(const std::array<T, 1> &input) {
+    return {rmath::exp(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_exp2(const std::array<T, 1> &input) {
+    return {rmath::exp2(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_exp10(const std::array<T, 1> &input) {
+    return {rmath::exp10(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_expm1(const std::array<T, 1> &input) {
+    return {rmath::expm1(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_pow(const std::array<T, 2> &input) {
+    return {rmath::pow(input[0], input[1])};
+}
+
+template <typename T>
+std::array<T, 1> check_nextafter(const std::array<T, 1> &input) {
+    return {rmath::nextafter(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_nearbyint(const std::array<T, 1> &input) {
+    return {rmath::nearbyint(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_rint(const std::array<T, 1> &input) {
+    return {rmath::rint(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_erf(const std::array<T, 1> &input) {
+    return {rmath::erf(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_erfc(const std::array<T, 1> &input) {
+    return {rmath::erfc(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_lgamma(const std::array<T, 1> &input) {
+    return {rmath::lgamma(input[0])};
+}
+
+template <typename T>
+std::array<T, 1> check_tgamma(const std::array<T, 1> &input) {
+    return {rmath::tgamma(input[0])};
 }
 
 template <typename T>
