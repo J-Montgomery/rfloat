@@ -52,7 +52,7 @@
         "displayName": "Debug config for Clang and GCC",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
-            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native"
+            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native;-Wunused;-Wunused-function"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"

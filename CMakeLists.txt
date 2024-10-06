@@ -45,7 +45,7 @@ target_sources(compiler_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/compiler_te
 
 add_executable(gen_reproducibility_tests)
 target_link_libraries(gen_reproducibility_tests rfloat)
-target_compile_options(gen_reproducibility_tests PRIVATE ${COMPILE_OPTIONS})
+target_compile_options(gen_reproducibility_tests PRIVATE ${COMPILE_OPTIONS} -DRMATH_NONDETERMINISTIC -Wunused-function)
 target_sources(gen_reproducibility_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/gen_repro_tests.cpp)
 
 if(RFLOAT_BENCHMARKS)

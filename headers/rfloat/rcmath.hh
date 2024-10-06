@@ -43,9 +43,8 @@ inline ReproducibleWrapper<T, R> fmax(const ReproducibleWrapper<T, R> &x,
 template <typename T, rounding_mode R>
 FEATURE_CXX23(constexpr)
 inline ReproducibleWrapper<T, R> fdim(const ReproducibleWrapper<T, R> &x,
-                                      const ReproducibleWrapper<T, R> &y,
-                                      const ReproducibleWrapper<T, R> &z) {
-    return ReproducibleWrapper<T, R>(std::fdim(x.value, y.value, z.value));
+                                      const ReproducibleWrapper<T, R> &y) {
+    return ReproducibleWrapper<T, R>(std::fdim(x.value, y.value));
 }
 
 template <typename T, rounding_mode R>
@@ -250,6 +249,13 @@ ReproducibleWrapper<T, R> nextafter(const ReproducibleWrapper<T, R> &from,
 
 template <typename T, rounding_mode R>
 FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> nexttoward(const ReproducibleWrapper<T, R> &from,
+                                     const ReproducibleWrapper<T, R> &to) {
+    return ReproducibleWrapper<T, R>(std::nexttoward(from.value, to.value));
+}
+
+template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
 ReproducibleWrapper<T, R> copysign(const ReproducibleWrapper<T, R> &mag,
                                    const ReproducibleWrapper<T, R> &sign) {
     return ReproducibleWrapper<T, R>(std::copysign(mag.value, sign.value));
@@ -260,6 +266,15 @@ ReproducibleWrapper<T, R> copysign(const ReproducibleWrapper<T, R> &mag,
 // IEEE-754 either doesn't acknowledge or have specific precision
 // requirements for them.
 // Nevertheless, they're useful for interoperability in existing programs
+
+#if __cpp_lib_interpolate >= 201902L
+template <typename T, rounding_mode R>
+ReproducibleWrapper<T, R> lerp(const ReproducibleWrapper<T, R> &a,
+                               const ReproducibleWrapper<T, R> &b,
+                               const ReproducibleWrapper<T, R> &t) {
+    return ReproducibleWrapper<T, R>(std::lerp(a.value, b.value, t.value));
+}
+#endif /* __cpp_lib_interpolate >= 201902L */
 
 // Exponentials
 template <typename T, rounding_mode R>
