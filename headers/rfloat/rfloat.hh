@@ -406,3 +406,4 @@ static_assert(std::is_trivial<rdouble>::value &&
 
 #undef OPT_BARRIER
 #undef SAFE_BINOP
+#undef FEATURE_CXX20
