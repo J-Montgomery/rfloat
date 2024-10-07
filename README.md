@@ -6,7 +6,7 @@
 - [Overview](#overview)
 - [Usage](#usage)
 - [Platform Support](#platforms)
-- [Comparison](#comparison)
+- [Project Goals](#goals)
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [Benchmarks](#benchmarks)
@@ -41,7 +41,7 @@ into something equivalent to:
 This will result in a more precise result that is ultimately non-deterministic because
 this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in additional overhead when using reproducible types on MSVC if /fp:fast is enabled.
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in an additional call per operation when using reproducible types on MSVC if /fp:fast is enabled.
 
 > [!NOTE]
 > MSVC overhead is not present when using the default setting of /fp:precise.
@@ -115,25 +115,16 @@ Overloads for `<cmath>` functions are provided in the `<rcmath>` header under th
 | MSVC     | :heavy_check_mark: | Untested | Untested |
 
 
-## Comparison
-### **rfloat goals**
-- Easy to integrate with existing code
-    - Most conversions are an 'r' prefix away
-    - Supports `<cmath>` and `std::numeric_limits`
-- Zero unnecessary overhead
-- Deterministic by default
-    - If it compiles, it should be safe unless the user explicitly opts out
-- Deterministic in all configurations
-    - **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`
-    - LTO support
-- Support modern, IEEE-754 compliant architectures
-    - Non-IEEE-754 platforms are explicitly not supported
+## Goals
+**rfloat** aims to be
+- Easy to integrate with existing code. Converting most code involves adding a single 'r' prefix
+- Support the full range of standard library functionality, including `<cmath>` and `std::numeric_limits`
+- Add zero unnecessary overhead
+- Be deterministic by default. If it compiles, it should be safe unless the user explicitly opts out
+- Be deterministic in all configurations. **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`, as well as LTO
+- Support modern, IEEE-754 compliant architectures. Supporting platforms without IEEE-754 floats is explicitly a non-goal
 
-### Other libraries
-- [streflop](https://github.com/abma/streflop)
-    - Sensitive to compiler flags
-- [dmath](https://github.com/sixitbb/sixit-dmath)
-    - Imposes additional overhead. Greater overheads for additional features.
+Other libraries like [streflop](https://github.com/abma/streflop) are sensitive to compiler flags or impose additional overheads.
 
 ## Limitations
 
