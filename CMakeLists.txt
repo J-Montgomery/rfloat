@@ -12,7 +12,7 @@ find_package(GTest REQUIRED)
 option(RFLOAT_BENCHMARKS "Enable benchmarks" OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
-file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*.hh)
+file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*)
 add_custom_target(format COMMAND clang-format-16 -i ${ALL_SOURCE_FILES})
 
 # rfloat

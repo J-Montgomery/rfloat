@@ -94,6 +94,12 @@ inline ReproducibleWrapper<T, R> round(const ReproducibleWrapper<T, R> &x) {
 }
 
 template <typename T, rounding_mode R>
+FEATURE_CXX23(constexpr)
+inline long lround(const ReproducibleWrapper<T, R> &x) {
+    return std::lround(x.value);
+}
+
+template <typename T, rounding_mode R>
 ReproducibleWrapper<T, R> nearbyint(const ReproducibleWrapper<T, R> &x) {
     return ReproducibleWrapper<T, R>(std::nearbyint(x.value));
 }

@@ -84,12 +84,14 @@ TEST_F(AlgorithmTest, MaxElementWorks) {
 }
 
 TEST_F(AlgorithmTest, CountIfWorks) {
-    int threshold = 50;
-    int count = std::count_if(numbers.begin(), numbers.end(),
-                              [threshold](rfloat x) { return x > threshold; });
-    int manual_count = 0;
+    long threshold = 50;
+    long count =
+        std::count_if(numbers.begin(), numbers.end(), [threshold](rfloat x) {
+            return rmath::lround(x) > threshold;
+        });
+    long manual_count = 0;
     for (const auto num : numbers) {
-        if (num > threshold) {
+        if (rmath::lround(num) > threshold) {
             manual_count++;
         }
     }
