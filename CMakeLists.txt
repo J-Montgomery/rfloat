@@ -36,6 +36,12 @@ target_link_libraries(reproducibility_tests GTest::gtest_main rfloat)
 target_compile_options(reproducibility_tests PRIVATE ${COMPILE_OPTIONS})
 target_sources(reproducibility_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/reproducibility_tests.cpp)
 
+add_executable(cpp_examples)
+set_target_properties(cpp_examples PROPERTIES CXX_STANDARD 23)
+target_link_libraries(cpp_examples GTest::gtest_main rfloat)
+target_compile_options(cpp_examples PRIVATE ${COMPILE_OPTIONS})
+target_sources(cpp_examples PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/cpp_examples.cpp)
+
 # Tools
 
 add_executable(compiler_test)
