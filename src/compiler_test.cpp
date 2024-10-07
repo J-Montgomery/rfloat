@@ -33,7 +33,6 @@ std::array<T, 3> lorenz(std::array<T, 3> initial_state, std::size_t steps,
 
 extern "C" int lorenz_test() {
     using T = rfloat;
-    bool errorflag = false;
     std::array<T, 3> input = {0.0, 1.0, 0.0};
     std::array<T, 3> expected = {T{-8.4283517044458289}, T{-7.0491893984733949},
                                  T{28.649356114765581}};
@@ -46,19 +45,16 @@ extern "C" int lorenz_test() {
     if (result[0] != expected[0]) {
         std::cout << std::setprecision(17) << "Error: " << result[0]
                   << " != " << expected[0] << std::endl;
-        errorflag |= true;
     }
 
     if (result[1] != expected[1]) {
         std::cout << std::setprecision(17) << "Error: " << result[1]
                   << " != " << expected[1] << std::endl;
-        errorflag |= true;
     }
 
     if (result[2] != expected[2]) {
         std::cout << std::setprecision(17) << "Error: " << result[2]
                   << " != " << expected[2] << std::endl;
-        errorflag |= true;
     }
 
     return 0;

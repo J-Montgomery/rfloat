@@ -1,11 +1,32 @@
 #include "gtest/gtest.h"
+#include <rcmath>
 #include <rfloat>
 
 #include <algorithm>
 #include <numeric>
 #include <random>
-#include <ranges>
 #include <vector>
+
+#if __cpp_lib_ranges >= 202110L && defined(ENABLE_RANGES)
+#include <ranges>
+
+TEST(RangesTransformTest, FloatRoundTransform) {
+    std::vector<rfloat> input = {1.2f, 2.7f, 3.5f, 4.8f, 5.1f};
+    auto rounded =
+        input | std::views::transform([](rfloat x) { return rmath::round(x); });
+
+    std::vector<rfloat> result(rounded.begin(), rounded.end());
+
+    std::vector<rfloat> expected = {1.0f, 3.0f, 4.0f, 5.0f, 5.0f};
+
+    ASSERT_EQ(result.size(), expected.size());
+
+    for (size_t i = 0; i < result.size(); ++i) {
+        EXPECT_FLOAT_EQ(result[i].underlying_value(),
+                        expected[i].underlying_value());
+    }
+}
+#endif /* ENABLE_RANGES */
 
 class AlgorithmTest : public ::testing::Test {
   protected:
@@ -74,25 +95,3 @@ TEST_F(AlgorithmTest, CountIfWorks) {
     }
     EXPECT_EQ(count, manual_count);
 }
-
-#if defined(__cpp_lib_ranges) && __cpp_lib_ranges >= 202207L &&                \
-    defined(ENABLE_RANGES)
-
-// Ranges are currently unsupported,
-TEST(RangesTransformTest, FloatRoundTransform) {
-    std::vector<rfloat> input = {1.2f, 2.7f, 3.5f, 4.8f, 5.1f};
-    auto rounded =
-        input | std::views::transform([](rfloat x) { return std::round(x); });
-
-    std::vector<rfloat> result(rounded.begin(), rounded.end());
-
-    std::vector<rfloat> expected = {1.0f, 3.0f, 4.0f, 5.0f, 5.0f};
-
-    ASSERT_EQ(result.size(), expected.size());
-
-    for (size_t i = 0; i < result.size(); ++i) {
-        EXPECT_FLOAT_EQ(result[i].underlying_value(),
-                        expected[i].underlying_value());
-    }
-}
-#endif /* ENABLE_RANGES */
