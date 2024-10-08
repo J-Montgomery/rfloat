@@ -335,6 +335,16 @@ TEST_F(InterfaceTest, check_conversion_docs) {
     EXPECT_EQ(f, f1);
 }
 
+TEST_F(InterfaceTest, check_docs_interest_example) {
+    rdouble principal{1000.0};
+    rdouble interest_rate{5.0};
+    constexpr rdouble term = 5;
+
+    rdouble rate = interest_rate / 100.0;
+    auto total = principal * pow(rate + 1.0, term);
+    EXPECT_FLOAT_EQ(total.underlying_value(), 1276.2816);
+}
+
 // This test shouldn't compile
 // TEST_F(InterfaceTest, check_downcasts_prohibited) {
 //     rdouble a(d1);

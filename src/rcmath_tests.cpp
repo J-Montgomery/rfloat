@@ -3,7 +3,6 @@
 #include <random>
 #include <vector>
 
-#include <rcmath>
 #include <rfloat>
 
 #include "rcmath_tests.hh"
@@ -40,7 +39,7 @@ TEST_P(RMathFunctionTest, AbsTest) {
     rdouble rd1(a);
 
     auto expected = std::abs(rd1.fp64());
-    auto result = rmath::abs(rd1);
+    auto result = abs(rd1);
 
     EXPECT_EQ(result, expected);
 }
@@ -50,7 +49,7 @@ TEST_P(RMathFunctionTest, SqrtTest) {
     rdouble rd1(a);
 
     auto expected = std::sqrt(rd1.fp64());
-    auto result = rmath::sqrt(rd1);
+    auto result = sqrt(rd1);
     auto square = result * result;
 
     EXPECT_EQ(result, expected);
@@ -63,7 +62,7 @@ TEST_P(RMathFunctionTest, FminTest) {
     rdouble rd1(a), rd2(b);
 
     auto expected = std::fmin(rd1.fp64(), rd2.fp64());
-    auto result = rmath::fmin(rd1, rd2);
+    auto result = fmin(rd1, rd2);
 
     EXPECT_EQ(result, expected);
 }
@@ -74,7 +73,7 @@ TEST_P(RMathFunctionTest, FmaxTest) {
     rdouble rd1(a), rd2(b);
 
     auto expected = std::fmax(rd1.fp64(), rd2.fp64());
-    auto result = rmath::fmax(rd1, rd2);
+    auto result = fmax(rd1, rd2);
 
     EXPECT_EQ(result, expected);
 }
@@ -86,7 +85,7 @@ TEST_P(RMathFunctionTest, FmaTest) {
     rdouble rd1(a), rd2(b), rd3(c);
 
     auto expected = std::fma(rd1.fp64(), rd2.fp64(), rd3.fp64());
-    auto result = rmath::fma(rd1, rd2, rd3);
+    auto result = fma(rd1, rd2, rd3);
 
     EXPECT_EQ(result, expected);
 }

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <rcmath>
+// #include <rcmath>
 #include <rfloat>
 
 #include <algorithm>
@@ -86,12 +86,11 @@ TEST_F(AlgorithmTest, MaxElementWorks) {
 TEST_F(AlgorithmTest, CountIfWorks) {
     long threshold = 50;
     long count =
-        std::count_if(numbers.begin(), numbers.end(), [threshold](rfloat x) {
-            return rmath::lround(x) > threshold;
-        });
+        std::count_if(numbers.begin(), numbers.end(),
+                      [threshold](rfloat x) { return lround(x) > threshold; });
     long manual_count = 0;
     for (const auto num : numbers) {
-        if (rmath::lround(num) > threshold) {
+        if (lround(num) > threshold) {
             manual_count++;
         }
     }

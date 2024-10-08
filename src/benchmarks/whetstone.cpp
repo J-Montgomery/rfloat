@@ -63,7 +63,7 @@ C**********************************************************************
 /* the following is optional depending on the timing function used */
 #include <time.h>
 
-#include <rcmath>
+#include <rfloat>
 
 #define DSIN sin
 #define DCOS cos
@@ -74,53 +74,9 @@ C**********************************************************************
 #define IF if
 
 #if defined(FP_TYPE_RDOUBLE)
-
-/* Define wrapper functions for reproducible types.
- * We're not testing stdlib implementations, so
- * we redirect these to compare apples to apples.
- */
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-sqrt(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::sqrt(x.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-cos(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::cos(x.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-sin(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::sin(x.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-atan(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::atan(x.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-log(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::log(x.value));
-}
-
-template <typename T, rounding_mode R>
-constexpr inline ReproducibleWrapper<T, R>
-exp(const ReproducibleWrapper<T, R> &x) {
-    return ReproducibleWrapper<T, R>(std::exp(x.value));
-}
-
 using float_type = rdouble;
-
 #elif defined(FP_TYPE_STD_DOUBLE)
-
 using float_type = double;
-
 #else
 #error "FP_TYPE_RDOUBLE or FP_TYPE_STD_DOUBLE must be defined"
 #endif
