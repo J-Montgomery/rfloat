@@ -13,7 +13,7 @@
 TEST(RangesTransformTest, FloatRoundTransform) {
     std::vector<rfloat> input = {1.2f, 2.7f, 3.5f, 4.8f, 5.1f};
     auto rounded =
-        input | std::views::transform([](rfloat x) { return rmath::round(x); });
+        input | std::views::transform([](rfloat x) { return rstd::round(x); });
 
     std::vector<rfloat> result(rounded.begin(), rounded.end());
 

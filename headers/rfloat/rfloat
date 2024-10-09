@@ -646,7 +646,7 @@ ReproducibleWrapper<T, R> copysign(const ReproducibleWrapper<T, R> &mag,
     return std::copysign(mag.underlying_value(), sign.underlying_value());
 }
 
-#if defined(RMATH_NONDETERMINISTIC)
+#if defined(RSTD_NONDETERMINISM)
 // These functions are generally non-deterministic, and more importantly
 // IEEE-754 either doesn't acknowledge or have specific precision
 // requirements for them.
@@ -968,7 +968,7 @@ ReproducibleWrapper<T, R> sph_neumann(const unsigned int n,
     return std::sph_neumann(n, x.underlying_value());
 }
 #endif /* defined(__STDCPP_WANT_MATH_SPEC_FUNCS__) */
-#endif /* defined(RMATH_NONDETERMINISTIC) */
+#endif /* defined(RSTD_NONDETERMINISM) */
 } // namespace rstd
 
 template <typename T>

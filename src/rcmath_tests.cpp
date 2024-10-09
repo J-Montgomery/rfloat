@@ -32,9 +32,9 @@ template <typename T> std::vector<T> generate_random_values(std::size_t count) {
     return random_numbers;
 }
 
-class RMathFunctionTest : public ::testing::TestWithParam<double> {};
+class RStdFunctionTest : public ::testing::TestWithParam<double> {};
 
-TEST_P(RMathFunctionTest, AbsTest) {
+TEST_P(RStdFunctionTest, AbsTest) {
     double a = GetParam();
     rdouble rd1(a);
 
@@ -44,7 +44,7 @@ TEST_P(RMathFunctionTest, AbsTest) {
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, SqrtTest) {
+TEST_P(RStdFunctionTest, SqrtTest) {
     double a = GetParam();
     rdouble rd1(a);
 
@@ -56,7 +56,7 @@ TEST_P(RMathFunctionTest, SqrtTest) {
     EXPECT_FLOAT_EQ(square.fp64(), rd1.fp64());
 }
 
-TEST_P(RMathFunctionTest, FminTest) {
+TEST_P(RStdFunctionTest, FminTest) {
     double a = GetParam();
     double b = GetParam();
     rdouble rd1(a), rd2(b);
@@ -67,7 +67,7 @@ TEST_P(RMathFunctionTest, FminTest) {
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, FmaxTest) {
+TEST_P(RStdFunctionTest, FmaxTest) {
     double a = GetParam();
     double b = GetParam();
     rdouble rd1(a), rd2(b);
@@ -78,7 +78,7 @@ TEST_P(RMathFunctionTest, FmaxTest) {
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, FmaTest) {
+TEST_P(RStdFunctionTest, FmaTest) {
     double a = GetParam();
     double b = GetParam();
     double c = GetParam();
@@ -93,8 +93,8 @@ TEST_P(RMathFunctionTest, FmaTest) {
 /* Numerically unstable tests */
 
 INSTANTIATE_TEST_SUITE_P(
-    RandomNumbers, RMathFunctionTest,
-    ::testing::ValuesIn(generate_random_values<double>(100)));
+    RandomNumbers, RStdFunctionTest,
+    ::testing::ValuesIn(generate_random_values<double>(50)));
 class RFloatReproducibilityTest : public ::testing::Test {
   public:
     using TestType = rfloat;

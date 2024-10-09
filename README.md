@@ -93,14 +93,14 @@ rfloat f = e.fp32(); // Compile error to prevent accidental narrowing
 float f = e.underlying_value(); // Escape hatches exist
 ```
 
-Users who need to specific rounding modes should call `rmath::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode.
+Users who need to specific rounding modes should call `rstd::SetRoundingMode<T>()` manually to ensure the environment is initialized to the correct rounding mode.
 
 > [!NOTE]
 > Ensuring the environment has the correct rounding mode at any given time is left up to the user.
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
-**rfloat** also provides overloads for all of the `<cmath>` functions. Only deterministic overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RMATH_NONDETERMINISTIC`.
+**rfloat** also provides overloads for all of the `<cmath>` functions. Only deterministic overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RSTD_NONDETERMINISM`.
 
 ```
 rdouble loan_cost(rdouble principal, rdouble interest_rate) {
@@ -114,7 +114,7 @@ Overloads are only as deterministic as the underlying standard library. Users wh
 
 
 > [!NOTE]
-> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RMATH_DETERMINISM` when
+> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` when
 > building the reproducibility tests, or by using `--preset debug` during CMake configuration with Clang or GCC.
 
 ## Platforms

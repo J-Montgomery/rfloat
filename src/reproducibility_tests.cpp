@@ -362,7 +362,7 @@ TEST(IOStreamTests, RandomSmallInputs) {
     }
 }
 
-#if defined(RMATH_NONDETERMINISTIC) && defined(ENABLE_NONDETERMINISTIC_TESTS)
+#if defined(RSTD_NONDETERMINISM) && defined(ENABLE_NONDETERMINISTIC_TESTS)
 TEST(TrigTests, RandomSin) {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sin_testdata);
@@ -654,4 +654,4 @@ TEST(SpecialTests, DISABLED_RandomLerp) {
 }
 #endif /* __cpp_lib_interpolate >= 201902L */
 
-#endif /* defined(RMATH_NONDETERMINISTIC) */
+#endif /* defined(RSTD_NONDETERMINISM) */

@@ -12,7 +12,7 @@
         "description": "Enables unsafe optimizations for reproducibility testing on unixes",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math;-march=native;-DRMATH_NONDETERMINISTIC"
+            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math;-march=native;-DRSTD_NONDETERMINISM"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
@@ -29,7 +29,7 @@
         },
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "COMPILE_OPTIONS": "/O2;/arch:AVX2;/fp:fast;/MT;/DRMATH_NONDETERMINISTIC"
+            "COMPILE_OPTIONS": "/O2;/arch:AVX2;/fp:fast;/MT;/DRSTD_NONDETERMINISM"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
@@ -41,7 +41,7 @@
         "description": "Enables reasonable optimizations for benchmark testing on unixes",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
-            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native"
+            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native;-DRSTD_NONDETERMINISM"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
@@ -52,7 +52,7 @@
         "displayName": "Debug config for Clang and GCC",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
-            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native;-Wunused;-Wunused-function;-DRMATH_NONDETERMINISTIC=1;-D__STDCPP_WANT_MATH_SPEC_FUNCS__=1"
+            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native;-Wunused;-Wunused-function;-DRSTD_NONDETERMINISM;-D__STDCPP_WANT_MATH_SPEC_FUNCS__=1"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"

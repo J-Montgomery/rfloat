@@ -148,7 +148,7 @@ static std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
     return {rstd::isunordered(input[0], input[1]) ? 1.0 : 0.0};
 }
 
-#if defined(RMATH_NONDETERMINISTIC)
+#if defined(RSTD_NONDETERMINISM)
 
 template <typename T>
 static std::array<T, 1> check_sin(const std::array<T, 1> &input) {
@@ -292,7 +292,7 @@ static std::array<T, 1> check_lerp(const std::array<T, 3> &input) {
 }
 #endif /* __cpp_lib_interpolate >= 201902L */
 
-#endif /* defined(RMATH_NONDETERMINISTIC)*/
+#endif /* defined(RSTD_NONDETERMINISM)*/
 
 int main() {
     using TestType = rdouble;
@@ -387,7 +387,7 @@ int main() {
     generate_test_data<TestType, 2, 1>("random_islessgreater",
                                        check_islessgreater<TestType>,
                                        random_islessgreater_inputs);
-#if defined(RMATH_NONDETERMINISTIC)
+#if defined(RSTD_NONDETERMINISM)
     auto random_exp_inputs = uniform_random_args<TestType, 1>(100, -10.0, 10.0);
     generate_test_data<TestType, 1, 1>("random_exp", check_exp<TestType>,
                                        random_exp_inputs);
@@ -513,7 +513,7 @@ int main() {
     generate_test_data<TestType, 3, 1>("random_lerp", check_lerp<TestType>,
                                        random_lerp_inputs);
 #endif /* __cpp_lib_interpolate >= 201902L */
-#endif /* defined(RMATH_NONDETERMINISTIC) */
+#endif /* defined(RSTD_NONDETERMINISM) */
 
     // Chaotic function tests
     auto random_lorenz_inputs = normal_random_args<TestType, 3>(100, 0.0, 20.0);
