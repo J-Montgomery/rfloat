@@ -114,7 +114,7 @@ Overloads are only as deterministic as the underlying standard library. Users wh
 
 
 > [!NOTE]
-> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` when
+> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` and `ENABLE_NONDETERMINISTIC_TESTS` when
 > building the reproducibility tests, or by using `--preset debug` during CMake configuration with Clang or GCC.
 
 ## Platforms

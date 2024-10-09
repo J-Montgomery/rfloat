@@ -52,7 +52,7 @@
         "displayName": "Debug config for Clang and GCC",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
-            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native;-Wunused;-Wunused-function;-DRSTD_NONDETERMINISM;-D__STDCPP_WANT_MATH_SPEC_FUNCS__=1"
+            "COMPILE_OPTIONS": "-O1;-g;-ggdb3;-pedantic;-march=native;-Wunused;-Wunused-function;-DRSTD_NONDETERMINISM;-DENABLE_NONDETERMINISTIC_TESTS;-D__STDCPP_WANT_MATH_SPEC_FUNCS__=1"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
