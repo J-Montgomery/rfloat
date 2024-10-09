@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <rcmath>
+// #include <rcmath>
 #include <rfloat>
 
 #include <algorithm>
@@ -13,7 +13,7 @@
 TEST(RangesTransformTest, FloatRoundTransform) {
     std::vector<rfloat> input = {1.2f, 2.7f, 3.5f, 4.8f, 5.1f};
     auto rounded =
-        input | std::views::transform([](rfloat x) { return rmath::round(x); });
+        input | std::views::transform([](rfloat x) { return rstd::round(x); });
 
     std::vector<rfloat> result(rounded.begin(), rounded.end());
 
@@ -87,11 +87,11 @@ TEST_F(AlgorithmTest, CountIfWorks) {
     long threshold = 50;
     long count =
         std::count_if(numbers.begin(), numbers.end(), [threshold](rfloat x) {
-            return rmath::lround(x) > threshold;
+            return rstd::lround(x) > threshold;
         });
     long manual_count = 0;
     for (const auto num : numbers) {
-        if (rmath::lround(num) > threshold) {
+        if (rstd::lround(num) > threshold) {
             manual_count++;
         }
     }

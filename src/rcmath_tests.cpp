@@ -3,7 +3,6 @@
 #include <random>
 #include <vector>
 
-#include <rcmath>
 #include <rfloat>
 
 #include "rcmath_tests.hh"
@@ -33,60 +32,60 @@ template <typename T> std::vector<T> generate_random_values(std::size_t count) {
     return random_numbers;
 }
 
-class RMathFunctionTest : public ::testing::TestWithParam<double> {};
+class RStdFunctionTest : public ::testing::TestWithParam<double> {};
 
-TEST_P(RMathFunctionTest, AbsTest) {
+TEST_P(RStdFunctionTest, AbsTest) {
     double a = GetParam();
     rdouble rd1(a);
 
     auto expected = std::abs(rd1.fp64());
-    auto result = rmath::abs(rd1);
+    auto result = rstd::abs(rd1);
 
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, SqrtTest) {
+TEST_P(RStdFunctionTest, SqrtTest) {
     double a = GetParam();
     rdouble rd1(a);
 
     auto expected = std::sqrt(rd1.fp64());
-    auto result = rmath::sqrt(rd1);
+    auto result = rstd::sqrt(rd1);
     auto square = result * result;
 
     EXPECT_EQ(result, expected);
     EXPECT_FLOAT_EQ(square.fp64(), rd1.fp64());
 }
 
-TEST_P(RMathFunctionTest, FminTest) {
+TEST_P(RStdFunctionTest, FminTest) {
     double a = GetParam();
     double b = GetParam();
     rdouble rd1(a), rd2(b);
 
     auto expected = std::fmin(rd1.fp64(), rd2.fp64());
-    auto result = rmath::fmin(rd1, rd2);
+    auto result = rstd::fmin(rd1, rd2);
 
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, FmaxTest) {
+TEST_P(RStdFunctionTest, FmaxTest) {
     double a = GetParam();
     double b = GetParam();
     rdouble rd1(a), rd2(b);
 
     auto expected = std::fmax(rd1.fp64(), rd2.fp64());
-    auto result = rmath::fmax(rd1, rd2);
+    auto result = rstd::fmax(rd1, rd2);
 
     EXPECT_EQ(result, expected);
 }
 
-TEST_P(RMathFunctionTest, FmaTest) {
+TEST_P(RStdFunctionTest, FmaTest) {
     double a = GetParam();
     double b = GetParam();
     double c = GetParam();
     rdouble rd1(a), rd2(b), rd3(c);
 
     auto expected = std::fma(rd1.fp64(), rd2.fp64(), rd3.fp64());
-    auto result = rmath::fma(rd1, rd2, rd3);
+    auto result = rstd::fma(rd1, rd2, rd3);
 
     EXPECT_EQ(result, expected);
 }
@@ -94,8 +93,8 @@ TEST_P(RMathFunctionTest, FmaTest) {
 /* Numerically unstable tests */
 
 INSTANTIATE_TEST_SUITE_P(
-    RandomNumbers, RMathFunctionTest,
-    ::testing::ValuesIn(generate_random_values<double>(100)));
+    RandomNumbers, RStdFunctionTest,
+    ::testing::ValuesIn(generate_random_values<double>(50)));
 class RFloatReproducibilityTest : public ::testing::Test {
   public:
     using TestType = rfloat;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <fenv.h>
 #include <istream>
 #include <limits>
@@ -82,7 +83,20 @@
 #define FEATURE_CXX20(expr)
 #endif /* __cplusplus >= 202002L */
 
-namespace rmath {
+#if __cpp_lib_constexpr_cmath >= 202202L
+#define FEATURE_CXX23(expr) expr
+#else
+#define FEATURE_CXX23(expr)
+#endif /* __cpp_lib_constexpr_cmath >= 202202L */
+
+#if __cpp_lib_constexpr_cmath >= 202306L
+#define FEATURE_CXX26(expr) expr
+#else
+#define FEATURE_CXX26(expr)
+#endif /* __cpp_lib_constexpr_cmath >= 202306L */
+
+namespace rstd {
+namespace details {
 
 enum class RoundingMode { ToEven, ToPositive, ToNegative, ToZero };
 
@@ -100,7 +114,7 @@ template <RoundingMode R> void SetRoundingMode() {
                       "Rounding mode is not supported");
     }
 }
-} /* namespace rmath */
+} // namespace details
 
 // MSVC doesn't have a way to define SAFE_BINOP(),
 // but the code is safe under /fp:precise.
@@ -110,7 +124,7 @@ template <RoundingMode R> void SetRoundingMode() {
 #pragma float_control(precise, on, push)
 #endif
 
-template <typename T, rmath::RoundingMode R = rmath::RoundingMode::ToEven>
+template <typename T, details::RoundingMode R = details::RoundingMode::ToEven>
 class ReproducibleWrapper {
 #if ENABLE_STDFLOAT
     static_assert(std::is_same<T, float>::value ||
@@ -129,20 +143,22 @@ class ReproducibleWrapper {
     static_assert(std::numeric_limits<T>::is_iec559,
                   "Type must be IEC 559 / IEEE 754 compliant");
 
+  protected:
+    T value;
+
   public:
     using underlying_type = T;
-    T value;
 
     constexpr ReproducibleWrapper(const T &val) : value(val) {}
     constexpr ReproducibleWrapper() = default;
 
-    template <rmath::RoundingMode R2>
+    template <details::RoundingMode R2>
     constexpr ReproducibleWrapper<T, R2> &operator=(T val) {
         value = val;
         return *this;
     }
 
-    template <rmath::RoundingMode R2>
+    template <details::RoundingMode R2>
     constexpr ReproducibleWrapper<T, R> &
     operator=(const ReproducibleWrapper<T, R2> &other) {
         value = other.value;
@@ -150,7 +166,7 @@ class ReproducibleWrapper {
     }
 
     // Enable explicit upcasts
-    template <typename T2, rmath::RoundingMode R2,
+    template <typename T2, details::RoundingMode R2,
               typename = typename std::enable_if<sizeof(T2) >= sizeof(T)>::type>
     explicit constexpr inline operator ReproducibleWrapper<T2, R2>() const {
         return ReproducibleWrapper<T2, R2>(static_cast<T2>(value));
@@ -380,8 +396,583 @@ class ReproducibleWrapper {
     }
 };
 
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> abs(const ReproducibleWrapper<T, R> &x) {
+    return std::abs(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> fmin(const ReproducibleWrapper<T, R> &x,
+                                      const ReproducibleWrapper<T, R> &y) {
+    return std::fmin(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> fmax(const ReproducibleWrapper<T, R> &x,
+                                      const ReproducibleWrapper<T, R> &y) {
+    return std::fmax(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> fdim(const ReproducibleWrapper<T, R> &x,
+                                      const ReproducibleWrapper<T, R> &y) {
+    return std::fdim(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> fmod(const ReproducibleWrapper<T, R> &x,
+                                      const ReproducibleWrapper<T, R> &y) {
+    return std::fmod(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> remainder(const ReproducibleWrapper<T, R> &x,
+                                           const ReproducibleWrapper<T, R> &y) {
+    return std::remainder(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> remquo(const ReproducibleWrapper<T, R> &x,
+                                        const ReproducibleWrapper<T, R> &y,
+                                        int *quo) {
+    return std::remquo(x.underlying_value(), y.underlying_value(), quo);
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> ceil(const ReproducibleWrapper<T, R> &x) {
+    return std::ceil(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> floor(const ReproducibleWrapper<T, R> &x) {
+    return std::floor(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> trunc(const ReproducibleWrapper<T, R> &x) {
+    return std::trunc(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> round(const ReproducibleWrapper<T, R> &x) {
+    return std::round(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline long lround(const ReproducibleWrapper<T, R> &x) {
+    return std::lround(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> nearbyint(const ReproducibleWrapper<T, R> &x) {
+    return std::nearbyint(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> rint(const ReproducibleWrapper<T, R> &x) {
+    return std::rint(x.underlying_value());
+}
+
+/* It'd be better if we could ensure these were being generated as
+ * the appropriate HW instructions and throw an error otherwise
+ */
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> sqrt(const ReproducibleWrapper<T, R> &x) {
+    return std::sqrt(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+inline ReproducibleWrapper<T, R> fma(const ReproducibleWrapper<T, R> &x,
+                                     const ReproducibleWrapper<T, R> &y,
+                                     const ReproducibleWrapper<T, R> &z) {
+    return std::fma(x.underlying_value(), y.underlying_value(),
+                    z.underlying_value());
+}
+
+// Classification functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+int fpclassify(const ReproducibleWrapper<T, R> &x) {
+    return std::fpclassify(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isfinite(const ReproducibleWrapper<T, R> &x) {
+    return std::isfinite(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isinf(const ReproducibleWrapper<T, R> &x) {
+    return std::isinf(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isnan(const ReproducibleWrapper<T, R> &x) {
+    return std::isnan(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isnormal(const ReproducibleWrapper<T, R> &x) {
+    return std::isnormal(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool signbit(const ReproducibleWrapper<T, R> &x) {
+    return std::signbit(x.underlying_value());
+}
+
+// Comparisons
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isgreater(const ReproducibleWrapper<T, R> &x,
+               const ReproducibleWrapper<T, R> &y) {
+    return std::isgreater(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isgreaterequal(const ReproducibleWrapper<T, R> &x,
+                    const ReproducibleWrapper<T, R> &y) {
+    return std::isgreaterequal(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isless(const ReproducibleWrapper<T, R> &x,
+            const ReproducibleWrapper<T, R> &y) {
+    return std::isless(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool islessequal(const ReproducibleWrapper<T, R> &x,
+                 const ReproducibleWrapper<T, R> &y) {
+    return std::islessequal(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool islessgreater(const ReproducibleWrapper<T, R> &x,
+                   const ReproducibleWrapper<T, R> &y) {
+    return std::islessgreater(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+bool isunordered(const ReproducibleWrapper<T, R> &x,
+                 const ReproducibleWrapper<T, R> &y) {
+    return std::isunordered(x.underlying_value(), y.underlying_value());
+}
+
+// Manipulation functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> frexp(const ReproducibleWrapper<T, R> &x, int *exp) {
+    return std::frexp(x.underlying_value(), exp);
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> ldexp(const ReproducibleWrapper<T, R> &x, int exp) {
+    return std::ldexp(x.underlying_value(), exp);
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> modf(const ReproducibleWrapper<T, R> &x,
+                               ReproducibleWrapper<T, R> *exp) {
+    return std::modf(x.underlying_value(), &exp->value);
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> scalbn(const ReproducibleWrapper<T, R> &x, int exp) {
+    return std::scalbn(x.underlying_value(), exp);
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+int ilogb(const ReproducibleWrapper<T, R> &x) {
+    return std::ilogb(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> logb(const ReproducibleWrapper<T, R> &x) {
+    return std::logb(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> nextafter(const ReproducibleWrapper<T, R> &from,
+                                    const ReproducibleWrapper<T, R> &to) {
+    return std::nextafter(from.underlying_value(), to.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> nexttoward(const ReproducibleWrapper<T, R> &from,
+                                     const ReproducibleWrapper<T, R> &to) {
+    return std::nexttoward(from.underlying_value(), to.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX23(constexpr)
+ReproducibleWrapper<T, R> copysign(const ReproducibleWrapper<T, R> &mag,
+                                   const ReproducibleWrapper<T, R> &sign) {
+    return std::copysign(mag.underlying_value(), sign.underlying_value());
+}
+
+#if defined(RSTD_NONDETERMINISM)
+// These functions are generally non-deterministic, and more importantly
+// IEEE-754 either doesn't acknowledge or have specific precision
+// requirements for them.
+// Nevertheless, they're useful for interoperability in existing programs
+
+#if __cpp_lib_interpolate >= 201902L
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> lerp(const ReproducibleWrapper<T, R> &a,
+                               const ReproducibleWrapper<T, R> &b,
+                               const ReproducibleWrapper<T, R> &t) {
+    return std::lerp(a.underlying_value(), b.underlying_value(),
+                     t.underlying_value());
+}
+#endif /* __cpp_lib_interpolate >= 201902L */
+
+// Exponentials
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> log(const ReproducibleWrapper<T, R> &x) {
+    return std::log(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> log10(const ReproducibleWrapper<T, R> &x) {
+    return std::log10(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> log2(const ReproducibleWrapper<T, R> &x) {
+    return std::log2(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> log1p(const ReproducibleWrapper<T, R> &x) {
+    return std::log1p(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> exp(const ReproducibleWrapper<T, R> &x) {
+    return std::exp(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> exp2(const ReproducibleWrapper<T, R> &x) {
+    return std::exp2(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> expm1(const ReproducibleWrapper<T, R> &x) {
+    return std::expm1(x.underlying_value());
+}
+
+// Power functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> pow(const ReproducibleWrapper<T, R> &base,
+                                     const ReproducibleWrapper<T, R> &exp) {
+    return std::pow(base.underlying_value(), exp.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> cbrt(const ReproducibleWrapper<T, R> &x) {
+    return std::cbrt(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> hypot(const ReproducibleWrapper<T, R> &x,
+                                       const ReproducibleWrapper<T, R> &y) {
+    return std::hypot(x.underlying_value(), y.underlying_value());
+}
+
+// Trigonometric functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> sin(const ReproducibleWrapper<T, R> &x) {
+    return std::sin(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> cos(const ReproducibleWrapper<T, R> &x) {
+    return std::cos(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> tan(const ReproducibleWrapper<T, R> &x) {
+    return std::tan(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> asin(const ReproducibleWrapper<T, R> &x) {
+    return std::asin(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> acos(const ReproducibleWrapper<T, R> &x) {
+    return std::acos(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> atan(const ReproducibleWrapper<T, R> &x) {
+    return std::atan(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> atan2(const ReproducibleWrapper<T, R> &y,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return std::atan2(y.underlying_value(), x.underlying_value());
+}
+
+// Hyperbolic functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> sinh(const ReproducibleWrapper<T, R> &x) {
+    return std::sinh(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> cosh(const ReproducibleWrapper<T, R> &x) {
+    return std::cosh(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> tanh(const ReproducibleWrapper<T, R> &x) {
+    return std::tanh(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> asinh(const ReproducibleWrapper<T, R> &x) {
+    return std::asinh(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> acosh(const ReproducibleWrapper<T, R> &x) {
+    return std::acosh(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> atanh(const ReproducibleWrapper<T, R> &x) {
+    return std::atanh(x.underlying_value());
+}
+
+// Error and gamma functions
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> erf(const ReproducibleWrapper<T, R> &x) {
+    return std::erf(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> erfc(const ReproducibleWrapper<T, R> &x) {
+    return std::erfc(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> tgamma(const ReproducibleWrapper<T, R> &x) {
+    return std::tgamma(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+FEATURE_CXX26(constexpr)
+inline ReproducibleWrapper<T, R> lgamma(const ReproducibleWrapper<T, R> &x) {
+    return std::lgamma(x.underlying_value());
+}
+
+#if __STDCPP_MATH_SPEC_FUNCS__ >= 201003L &&                                   \
+    defined(__STDCPP_WANT_MATH_SPEC_FUNCS__)
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> assoc_laguerre(const unsigned int n,
+                                         const unsigned int m,
+                                         const ReproducibleWrapper<T, R> &x) {
+    return std::assoc_laguerre(n, m, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> assoc_legendre(const unsigned int n,
+                                         const unsigned int m,
+                                         const ReproducibleWrapper<T, R> &x) {
+    return std::assoc_legendre(n, m, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> beta(const ReproducibleWrapper<T, R> &x,
+                               const ReproducibleWrapper<T, R> &y) {
+    return std::beta(x.underlying_value(), y.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> comp_ellint_1(const ReproducibleWrapper<T, R> &k) {
+    return std::comp_ellint_1(k.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> comp_ellint_2(const ReproducibleWrapper<T, R> &k) {
+    return std::comp_ellint_2(k.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> comp_ellint_3(const ReproducibleWrapper<T, R> &k,
+                                        const ReproducibleWrapper<T, R> &nu) {
+    return std::comp_ellint_3(k.underlying_value(), nu.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> cyl_bessel_i(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return std::cyl_bessel_i(nu.underlying_value(), x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> cyl_bessel_j(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return std::cyl_bessel_j(nu.underlying_value(), x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> cyl_bessel_k(const ReproducibleWrapper<T, R> &nu,
+                                       const ReproducibleWrapper<T, R> &x) {
+    return std::cyl_bessel_k(nu.underlying_value(), x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> cyl_neumann(const ReproducibleWrapper<T, R> &nu,
+                                      const ReproducibleWrapper<T, R> &x) {
+    return std::cyl_neumann(nu.underlying_value(), x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> ellint_1(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return std::ellint_1(k.underlying_value(), phi.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> ellint_2(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return std::ellint_2(k.underlying_value(), phi.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> ellint_3(const ReproducibleWrapper<T, R> &k,
+                                   const ReproducibleWrapper<T, R> &nu,
+                                   const ReproducibleWrapper<T, R> &phi) {
+    return std::ellint_3(k.underlying_value(), nu.underlying_value(),
+                         phi.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> expint(const ReproducibleWrapper<T, R> &x) {
+    return std::expint(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> hermite(const unsigned int n,
+                                  const ReproducibleWrapper<T, R> &x) {
+    return std::hermite(n, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> legendre(const unsigned int n,
+                                   const ReproducibleWrapper<T, R> &x) {
+    return std::legendre(n, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> laguerre(const unsigned int n,
+                                   const ReproducibleWrapper<T, R> &x) {
+    return std::laguerre(n, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> riemann_zeta(const ReproducibleWrapper<T, R> &x) {
+    return std::riemann_zeta(x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> sph_bessel(const unsigned int n,
+                                     const ReproducibleWrapper<T, R> &x) {
+    return std::sph_bessel(n, x.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> sph_legendre(const unsigned int n,
+                                       const unsigned int m,
+                                       const ReproducibleWrapper<T, R> &theta) {
+    return std::sph_legendre(n, m, theta.underlying_value());
+}
+
+template <typename T, details::RoundingMode R>
+ReproducibleWrapper<T, R> sph_neumann(const unsigned int n,
+                                      const ReproducibleWrapper<T, R> &x) {
+    return std::sph_neumann(n, x.underlying_value());
+}
+#endif /* defined(__STDCPP_WANT_MATH_SPEC_FUNCS__) */
+#endif /* defined(RSTD_NONDETERMINISM) */
+} // namespace rstd
+
 template <typename T>
-class std::numeric_limits<ReproducibleWrapper<T>>
+class std::numeric_limits<rstd::ReproducibleWrapper<T>>
     : public std::numeric_limits<T> {};
 
 #ifdef MSVC_FAST
@@ -394,9 +985,11 @@ class std::numeric_limits<ReproducibleWrapper<T>>
 // so doing it this way would make statements like
 // `using f = rfloat;` invalid.
 // Instead, pick reasonable defaults
-using rfloat = ReproducibleWrapper<float, rmath::RoundingMode::ToEven>;
-using rdouble = ReproducibleWrapper<double, rmath::RoundingMode::ToEven>;
-using rounding_mode = rmath::RoundingMode;
+using rfloat =
+    rstd::ReproducibleWrapper<float, rstd::details::RoundingMode::ToEven>;
+using rdouble =
+    rstd::ReproducibleWrapper<double, rstd::details::RoundingMode::ToEven>;
+using rounding_mode = rstd::details::RoundingMode;
 
 // Sanity checks
 static_assert(std::is_trivial<rfloat>::value &&
@@ -409,3 +1002,5 @@ static_assert(std::is_trivial<rdouble>::value &&
 #undef OPT_BARRIER
 #undef SAFE_BINOP
 #undef FEATURE_CXX20
+#undef FEATURE_CXX23
+#undef FEATURE_CXX26

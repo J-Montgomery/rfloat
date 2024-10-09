@@ -335,6 +335,16 @@ TEST_F(InterfaceTest, check_conversion_docs) {
     EXPECT_EQ(f, f1);
 }
 
+TEST_F(InterfaceTest, check_docs_interest_example) {
+    rdouble principal{1000.0};
+    rdouble interest_rate{5.0};
+    constexpr rdouble term = 5;
+
+    rdouble rate = interest_rate / 100.0;
+    auto total = principal * rstd::pow(rate + 1.0, term);
+    EXPECT_FLOAT_EQ(total.underlying_value(), 1276.2816);
+}
+
 // This test shouldn't compile
 // TEST_F(InterfaceTest, check_downcasts_prohibited) {
 //     rdouble a(d1);
@@ -369,9 +379,13 @@ TEST_F(InterfaceTest, check_conversion_docs) {
 //     EXPECT_TRUE(rf1 == i);
 // }
 
-// This should generate compile errors
+// This should generate compile errors. Unfortunately,
+// the compile error it generates is "unsupported type"
+// rather than "not iec559" because some toolchains/targets
+// consider extended types to be IEC 559 compliant and
+// return true, while others don't implement them.
 // TEST_F(InterfaceTest, validate_non_iec559) {
-//     ReproducibleWrapper<long double> rd1(f1);
+//     rstd::ReproducibleWrapper<long double> rd1(f1);
 
 //     EXPECT_EQ(rd1 + d1, rd1 + d1);
 // }
