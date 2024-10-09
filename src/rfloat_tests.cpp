@@ -341,7 +341,7 @@ TEST_F(InterfaceTest, check_docs_interest_example) {
     constexpr rdouble term = 5;
 
     rdouble rate = interest_rate / 100.0;
-    auto total = principal * pow(rate + 1.0, term);
+    auto total = principal * rstd::pow(rate + 1.0, term);
     EXPECT_FLOAT_EQ(total.underlying_value(), 1276.2816);
 }
 

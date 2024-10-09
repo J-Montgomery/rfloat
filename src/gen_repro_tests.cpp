@@ -2,7 +2,6 @@
 
 #include "gen_repro_tests.hh"
 #include "rcmath_tests.hh"
-// #include <rcmath>
 #include <rfloat>
 
 constexpr std::size_t steps = 1000;
@@ -41,255 +40,255 @@ static std::array<T, 1> logistic_map(const std::array<T, 2> &input) {
 
 template <typename T>
 static std::array<T, 1> check_abs(const std::array<T, 1> &input) {
-    return {abs(input[0])};
+    return {rstd::abs(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_fmod(const std::array<T, 2> &input) {
-    return {fmod(input[0], input[1])};
+    return {rstd::fmod(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_fmin(const std::array<T, 2> &input) {
-    return {fmin(input[0], input[1])};
+    return {rstd::fmin(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_fmax(const std::array<T, 2> &input) {
-    return {fmax(input[0], input[1])};
+    return {rstd::fmax(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_fdim(const std::array<T, 2> &input) {
-    return {fdim(input[0], input[1])};
+    return {rstd::fdim(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_sqrt(const std::array<T, 1> &input) {
-    return {sqrt(input[0])};
+    return {rstd::sqrt(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_ceil(const std::array<T, 1> &input) {
-    return {ceil(input[0])};
+    return {rstd::ceil(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_floor(const std::array<T, 1> &input) {
-    return {floor(input[0])};
+    return {rstd::floor(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_round(const std::array<T, 1> &input) {
-    return {round(input[0])};
+    return {rstd::round(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_trunc(const std::array<T, 1> &input) {
-    return {trunc(input[0])};
+    return {rstd::trunc(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_nextafter(const std::array<T, 2> &input) {
-    return {nextafter(input[0], input[1])};
+    return {rstd::nextafter(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_nexttoward(const std::array<T, 2> &input) {
-    return {nexttoward(input[0], input[1])};
+    return {rstd::nexttoward(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_nearbyint(const std::array<T, 1> &input) {
-    return {nearbyint(input[0])};
+    return {rstd::nearbyint(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_rint(const std::array<T, 1> &input) {
-    return {rint(input[0])};
+    return {rstd::rint(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_remainder(const std::array<T, 2> &input) {
-    return {remainder(input[0], input[1])};
+    return {rstd::remainder(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_fma(const std::array<T, 3> &input) {
-    return {fma(input[0], input[1], input[2])};
+    return {rstd::fma(input[0], input[1], input[2])};
 }
 
 template <typename T>
 static std::array<T, 1> check_isgreater(const std::array<T, 2> &input) {
-    return {isgreater(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::isgreater(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 static std::array<T, 1> check_isless(const std::array<T, 2> &input) {
-    return {isless(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::isless(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 static std::array<T, 1> check_islessequal(const std::array<T, 2> &input) {
-    return {islessequal(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::islessequal(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 static std::array<T, 1> check_isgreaterequal(const std::array<T, 2> &input) {
-    return {isgreaterequal(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::isgreaterequal(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 static std::array<T, 1> check_islessgreater(const std::array<T, 2> &input) {
-    return {islessgreater(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::islessgreater(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 template <typename T>
 static std::array<T, 1> check_isunordered(const std::array<T, 2> &input) {
-    return {isunordered(input[0], input[1]) ? 1.0 : 0.0};
+    return {rstd::isunordered(input[0], input[1]) ? 1.0 : 0.0};
 }
 
 #if defined(RMATH_NONDETERMINISTIC)
 
 template <typename T>
 static std::array<T, 1> check_sin(const std::array<T, 1> &input) {
-    return {sin(input[0])};
+    return {rstd::sin(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_cos(const std::array<T, 1> &input) {
-    return {cos(input[0])};
+    return {rstd::cos(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_tan(const std::array<T, 1> &input) {
-    return {tan(input[0])};
+    return {rstd::tan(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_asin(const std::array<T, 1> &input) {
-    return {asin(input[0])};
+    return {rstd::asin(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_acos(const std::array<T, 1> &input) {
-    return {acos(input[0])};
+    return {rstd::acos(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_atan(const std::array<T, 1> &input) {
-    return {atan(input[0])};
+    return {rstd::atan(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_atan2(const std::array<T, 2> &input) {
-    return {atan2(input[0], input[1])};
+    return {rstd::atan2(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_sinh(const std::array<T, 1> &input) {
-    return {sinh(input[0])};
+    return {rstd::sinh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_cosh(const std::array<T, 1> &input) {
-    return {cosh(input[0])};
+    return {rstd::cosh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_tanh(const std::array<T, 1> &input) {
-    return {tanh(input[0])};
+    return {rstd::tanh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_asinh(const std::array<T, 1> &input) {
-    return {asinh(input[0])};
+    return {rstd::asinh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_acosh(const std::array<T, 1> &input) {
-    return {acosh(input[0])};
+    return {rstd::acosh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_atanh(const std::array<T, 1> &input) {
-    return {atanh(input[0])};
+    return {rstd::atanh(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_hypot(const std::array<T, 2> &input) {
-    return {hypot(input[0], input[1])};
+    return {rstd::hypot(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_log(const std::array<T, 1> &input) {
-    return {log(input[0])};
+    return {rstd::log(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_log2(const std::array<T, 1> &input) {
-    return {log2(input[0])};
+    return {rstd::log2(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_log10(const std::array<T, 1> &input) {
-    return {log10(input[0])};
+    return {rstd::log10(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_log1p(const std::array<T, 1> &input) {
-    return {log1p(input[0])};
+    return {rstd::log1p(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_exp(const std::array<T, 1> &input) {
-    return {exp(input[0])};
+    return {rstd::exp(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_exp2(const std::array<T, 1> &input) {
-    return {exp2(input[0])};
+    return {rstd::exp2(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_expm1(const std::array<T, 1> &input) {
-    return {expm1(input[0])};
+    return {rstd::expm1(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_pow(const std::array<T, 2> &input) {
-    return {pow(input[0], input[1])};
+    return {rstd::pow(input[0], input[1])};
 }
 
 template <typename T>
 static std::array<T, 1> check_cbrt(const std::array<T, 1> &input) {
-    return {cbrt(input[0])};
+    return {rstd::cbrt(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_erf(const std::array<T, 1> &input) {
-    return {erf(input[0])};
+    return {rstd::erf(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_erfc(const std::array<T, 1> &input) {
-    return {erfc(input[0])};
+    return {rstd::erfc(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_lgamma(const std::array<T, 1> &input) {
-    return {lgamma(input[0])};
+    return {rstd::lgamma(input[0])};
 }
 
 template <typename T>
 static std::array<T, 1> check_tgamma(const std::array<T, 1> &input) {
-    return {tgamma(input[0])};
+    return {rstd::tgamma(input[0])};
 }
 
 #if __cpp_lib_interpolate >= 201902L
 template <typename T>
 static std::array<T, 1> check_lerp(const std::array<T, 3> &input) {
-    return {lerp(input[0], input[1], input[2])};
+    return {rstd::lerp(input[0], input[1], input[2])};
 }
 #endif /* __cpp_lib_interpolate >= 201902L */
 

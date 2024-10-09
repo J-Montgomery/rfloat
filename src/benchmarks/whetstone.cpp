@@ -65,17 +65,23 @@ C**********************************************************************
 
 #include <rfloat>
 
-#define DSIN sin
-#define DCOS cos
-#define DATAN atan
-#define DLOG log
-#define DEXP exp
-#define DSQRT sqrt
-#define IF if
-
 #if defined(FP_TYPE_RDOUBLE)
+#define DSIN rstd::sin
+#define DCOS rstd::cos
+#define DATAN rstd::atan
+#define DLOG rstd::log
+#define DEXP rstd::exp
+#define DSQRT rstd::sqrt
+#define IF if
 using float_type = rdouble;
 #elif defined(FP_TYPE_STD_DOUBLE)
+#define DSIN std::sin
+#define DCOS std::cos
+#define DATAN std::atan
+#define DLOG std::log
+#define DEXP std::exp
+#define DSQRT std::sqrt
+#define IF if
 using float_type = double;
 #else
 #error "FP_TYPE_RDOUBLE or FP_TYPE_STD_DOUBLE must be defined"
