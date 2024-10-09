@@ -379,9 +379,13 @@ TEST_F(InterfaceTest, check_docs_interest_example) {
 //     EXPECT_TRUE(rf1 == i);
 // }
 
-// This should generate compile errors
+// This should generate compile errors. Unfortunately,
+// the compile error it generates is "unsupported type"
+// rather than "not iec559" because some toolchains/targets
+// consider extended types to be IEC 559 compliant and
+// return true, while others don't implement them.
 // TEST_F(InterfaceTest, validate_non_iec559) {
-//     ReproducibleWrapper<long double> rd1(f1);
+//     rstd::ReproducibleWrapper<long double> rd1(f1);
 
 //     EXPECT_EQ(rd1 + d1, rd1 + d1);
 // }
