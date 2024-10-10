@@ -1,4 +1,5 @@
 #include "gtest/gtest.h"
+#include <unordered_map>
 
 #include <rfloat>
 
@@ -343,6 +344,27 @@ TEST_F(InterfaceTest, check_docs_interest_example) {
     rdouble rate = interest_rate / 100.0;
     auto total = principal * rstd::pow(rate + 1.0, term);
     EXPECT_FLOAT_EQ(total.underlying_value(), 1276.2816);
+}
+
+TEST_F(InterfaceTest, unordered_map_basic) {
+    std::unordered_map<rfloat, rfloat> m;
+    m[f1] = f1;
+    m[f2] = f2;
+
+    EXPECT_EQ(m[f1], f1);
+    EXPECT_EQ(m[f2], f2);
+
+    m[f1] = f2;
+    EXPECT_EQ(m[f1], f2);
+    EXPECT_EQ(m[f2], f2);
+
+    m.erase(f1);
+    try {
+        auto x = m.at(f1);
+        EXPECT_TRUE(false); // The previous statement should have thrown
+    } catch (const std::out_of_range &) {
+        EXPECT_TRUE(true);
+    }
 }
 
 // This test shouldn't compile

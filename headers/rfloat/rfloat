@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <fenv.h>
+#include <functional>
 #include <istream>
 #include <limits>
 #include <ostream>
@@ -974,6 +975,13 @@ ReproducibleWrapper<T, R> sph_neumann(const unsigned int n,
 template <typename T>
 class std::numeric_limits<rstd::ReproducibleWrapper<T>>
     : public std::numeric_limits<T> {};
+
+template <typename T>
+struct std::hash<rstd::ReproducibleWrapper<T>> : public std::hash<T> {
+    size_t operator()(const rstd::ReproducibleWrapper<T> &x) const {
+        return hash<T>::operator()(x.underlying_value());
+    }
+};
 
 #ifdef MSVC_FAST
 #pragma float_control(pop)
