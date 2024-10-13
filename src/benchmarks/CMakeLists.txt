@@ -12,8 +12,8 @@ target_compile_options(whetstone_bench_rdouble PRIVATE ${COMPILE_OPTIONS} -DFP_T
 # Linpack
 add_executable(linpack_bench_double linpack.cpp)
 target_link_libraries(linpack_bench_double rfloat)
-target_compile_options(linpack_bench_double PRIVATE ${COMPILE_OPTIONS} -DFP_TYPE_STD_DOUBLE -DPRINTOUT)
+target_compile_options(linpack_bench_double PRIVATE ${COMPILE_OPTIONS} -DFP_TYPE_STD -DDP)
 
 add_executable(linpack_bench_rdouble linpack.cpp)
 target_link_libraries(linpack_bench_rdouble rfloat)
-target_compile_options(linpack_bench_rdouble PRIVATE ${COMPILE_OPTIONS} -DFP_TYPE_RDOUBLE -DPRINTOUT)
+target_compile_options(linpack_bench_rdouble PRIVATE ${COMPILE_OPTIONS} -DFP_TYPE_R -DDP)

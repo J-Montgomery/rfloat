@@ -28,11 +28,12 @@
 **
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
 #include <time.h>
-#include <float.h>
+#include <numeric>
+
+#include <rfloat>
 
 #ifndef SP
 #ifndef DP
@@ -40,22 +41,38 @@
 #endif
 #endif
 
+#if defined(FP_TYPE_R)
+#define FABS(x)     rstd::abs(x)
+#elif defined(FP_TYPE_STD)
+#define FABS(x)     std::abs(x)
+#else
+#error "Must define FP_TYPE_R or FP_TYPE_STD"
+#endif
+
 #ifdef SP
 #define ZERO        0.0
 #define ONE         1.0
-#define PREC        "Single"
-#define BASE10DIG   FLT_DIG
 
+#if defined(FP_TYPE_R)
+#define PREC        "rsingle"
+typedef rfloat REAL;
+#elif defined(FP_TYPE_STD)
+#define PREC        "Single"
 typedef float   REAL;
+#endif
 #endif
 
 #ifdef DP
 #define ZERO        0.0e0
 #define ONE         1.0e0
-#define PREC        "Double"
-#define BASE10DIG   DBL_DIG
 
-typedef double  REAL;
+#if defined(FP_TYPE_R)
+#define PREC        "rdouble"
+typedef rdouble REAL;
+#elif defined(FP_TYPE_STD)
+#define PREC        "Double"
+typedef double   REAL;
+#endif
 #endif
 
 /* 2022-07-26: Macro defined for memreq variable to resolve warnings
@@ -93,7 +110,7 @@ int main(int argc, char **argv)
 	if (argc < 2)
        	    {
 	    printf("Enter array size (q to quit) [100]:  ");
-            fgets(buf,79,stdin);
+            [[maybe_unused]] auto _ = fgets(buf,79,stdin);
             }
 	if (buf[0]=='q' || buf[0]=='Q')
             break;
@@ -121,7 +138,7 @@ int main(int argc, char **argv)
             continue;
             }
         printf("LINPACK benchmark, %s precision.\n",PREC);
-        printf("Machine precision:  %d digits.\n",BASE10DIG);
+        printf("Machine precision:  %d digits.\n",std::numeric_limits<REAL>::digits10);
         printf("Array size %d X %d.\n",arsize,arsize);
         printf("Memory required:  %ldK.\n",(memreq+512L)>>10);
         printf("Average rolled and unrolled performance:\n\n");
@@ -187,10 +204,17 @@ static REAL linpack(long nreps,int arsize)
         tdgesl=0.;
     if (toverhead<0.)
         toverhead=0.;
+    #if defined(FP_TYPE_R)
+    printf("%8ld %6.2f %6.2f%% %6.2f%% %6.2f%%  %9.3f\n",
+            nreps,totalt.underlying_value(),(100.*tdgefa/totalt).underlying_value(),
+            (100.*tdgesl/totalt).underlying_value(),(100.*toverhead/totalt).underlying_value(),
+            kflops.underlying_value());
+    #else
     printf("%8ld %6.2f %6.2f%% %6.2f%% %6.2f%%  %9.3f\n",
             nreps,totalt,100.*tdgefa/totalt,
             100.*tdgesl/totalt,100.*toverhead/totalt,
             kflops);
+    #endif /* defined(FP_TYPE_R) */
     return(totalt);
     }
 
@@ -868,14 +892,14 @@ static int idamax(int n,REAL *dx,int incx)
         /* code for increment not equal to 1 */
 
         ix = 1;
-        dmax = fabs((double)dx[0]);
+        dmax = FABS((REAL)dx[0]);
         ix = ix + incx;
         for (i = 1; i < n; i++)
             {
-            if(fabs((double)dx[ix]) > dmax)
+            if(FABS((REAL)dx[ix]) > dmax)
                 {
                 itemp = i;
-                dmax = fabs((double)dx[ix]);
+                dmax = FABS((REAL)dx[ix]);
                 }
             ix = ix + incx;
             }
@@ -886,12 +910,12 @@ static int idamax(int n,REAL *dx,int incx)
         /* code for increment equal to 1 */
 
         itemp = 0;
-        dmax = fabs((double)dx[0]);
+        dmax = FABS((REAL)dx[0]);
         for (i = 1; i < n; i++)
-            if(fabs((double)dx[i]) > dmax)
+            if(FABS((REAL)dx[i]) > dmax)
                 {
                 itemp = i;
-                dmax = fabs((double)dx[i]);
+                dmax = FABS((REAL)dx[i]);
                 }
         }
     return (itemp);
