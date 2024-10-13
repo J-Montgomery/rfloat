@@ -1,4 +1,6 @@
-project(benchmarks)
+project(benchmarks
+    VERSION 0.1.0
+    LANGUAGES CXX)
 
 # Whetstone
 add_executable(whetstone_bench_double whetstone.cpp)

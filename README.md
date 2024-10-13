@@ -176,6 +176,29 @@ have benefited the baseline implementation. No attempt has been made to ensure t
 | Clang 16 | 6250 MWIPS | 5882.4 MWIPS |
 | GCC 11   | 6250 MWIPS | 5882.4 MWIPS |
 
+### Ansibench linpack on x64:
+All numbers in GFLOPS, rounded to 2 decimal digits.
+
+#### GCC-11 -O2
+| Size | double | rdouble | Slowdown relative to double |
+|----------|--------|---------|----|
+| 32k | 5.48 | 5.47 | 0.18% |
+| 64k | 5.47 | 5.48 | -0.10% |
+| 128k | 5.48 | 5.52 | -0.64% |
+| 256k | 5.47 | 5.51 | -0.66% |
+
+#### Clang-16 -O2
+
+| Size | double | rdouble | Slowdown relative to double |
+|----------|--------|---------|----|
+| 32k | 7.69  | 4.25 | 44.77% |
+| 64k | 7.71 | 4.25 | 44.82% |
+| 128k | 7.68 | 4.24| 44.81% |
+| 256k | 7.70 | 4.24 | 44.91% |
+
+The clang slowdown results almost entirely from Clang emitting unnecessary memory stores
+after every floating point operation. Eliminating these stores closes the performance gap, but also results in the non-deterministic code emitted.
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
