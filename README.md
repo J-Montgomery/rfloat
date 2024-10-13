@@ -197,7 +197,7 @@ All numbers in GFLOPS, rounded to 2 decimal digits.
 | 256k | 7.70 | 4.24 | 44.91% |
 
 The clang slowdown results almost entirely from Clang emitting unnecessary memory stores
-after every floating point operation. Eliminating these stores closes the performance gap, but also results in the non-deterministic code emitted.
+after every floating point operation. Eliminating these stores closes the performance gap, but also emits non-deterministic code.
 
 ## License
 
