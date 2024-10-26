@@ -90,8 +90,10 @@ else()
 
 add_executable(qemu_reproducibility_tests)
 target_link_libraries(qemu_reproducibility_tests doctest rfloat)
-target_compile_options(qemu_reproducibility_tests PRIVATE ${COMPILE_OPTIONS})
+target_compile_options(qemu_reproducibility_tests PRIVATE "-static" ${COMPILE_OPTIONS})
 target_sources(qemu_reproducibility_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/bare_metal_reproducibility_tests.cpp)
 
+enable_testing()
+add_test(NAME qemu_reproducibility_tests COMMAND qemu_reproducibility_tests PROPERTIES LAUNCHER "${TEST_RUNNER}")
 endif()
 

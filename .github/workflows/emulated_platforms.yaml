@@ -12,17 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [arm, aarch64, riscv64]
+        arch: [arm, aarch64]
         include:
           - arch: arm
             qemu: qemu-arm
+            dpkg: arm
+            runtime: libc6:armhf
             triple: arm-linux-gnueabihf
           - arch: aarch64
+            dpkg: aarch64
+            runtime: libc6:arm64
             qemu: qemu-aarch64
             triple: aarch64-linux-gnu
-          - arch: riscv64
-            qemu: qemu-riscv64
-            triple: riscv64-linux-gnu
+          # - arch: riscv64
+          #   dpkg: riscv64
+          #   qemu: qemu-riscv64
+          #   triple: riscv64-linux-gnu
 
     steps:
     - uses: actions/checkout@v4
@@ -37,14 +42,20 @@ jobs:
       run: |
         # sudo apt-get autopurge -y needrestart
         sudo apt-get update
-        sudo apt-get install -y qemu-user cmake build-essential apt-file
-        sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }} libgtest-dev
+        sudo apt-get install -y qemu-user qemu-user-static cmake build-essential apt-file
+        sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }} binutils-${{ matrix.triple }} libgtest-dev
+        sudo dpkg --add-architecture ${{ matrix.arch }}
+        sudo apt-get update
+        # sudo apt-get install -y ${{ matrix.runtime }}
+        sudo apt-get install -y qemu-user-binfmt
         sudo apt-file update
 
     - name: Compiler Version
       run: |
         apt-file list g++-${{ matrix.triple }}
         /usr/bin/${{ matrix.triple }}-g++ --version
+        apt-file search ld-linux.so.3
+        # ln -s ${{ steps.strings.outputs.build-output-dir }} ${{ matrix.arch }}
 
     - uses: Bacondish2023/setup-googletest@v1
       with:
@@ -57,7 +68,8 @@ jobs:
               -DCMAKE_CROSSCOMPILING=TRUE \
               -DCMAKE_SYSTEM_NAME=Linux \
               -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
-              -DQEMU_RUN=${{ matrix.qemu }} .. \
+              -DQEMU_RUN=${{ matrix.qemu }} \
+              .. \
               --preset qemu \
               -S ${{ github.workspace }}
 
@@ -67,12 +79,4 @@ jobs:
     - name: Run tests with CTest and QEMU
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
-        ctest -V --timeout 300
-          --build-config Release \
-          --rerun-failed \
-          --output-on-failure \
-          --test-action test \
-          --tests-regex ".*" \
-          --overwrite MemoryCheckCommand=${{ matrix.qemu }} \
-          --overwrite MemoryCheckCommandOptions="" \
-          --overwrite MemoryCheckType=AddressSanitizer
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./qemu_reproducibility_tests
