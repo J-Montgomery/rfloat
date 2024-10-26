@@ -1,0 +1,68 @@
+name: Build and Test on QEMU
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [arm, aarch64, riscv64]
+        include:
+          - arch: arm
+            qemu: qemu-arm
+            triple: arm-linux-gnueabihf
+          - arch: aarch64
+            qemu: qemu-aarch64
+            triple: aarch64-linux-gnu
+          - arch: riscv64
+            qemu: qemu-riscv64
+            triple: riscv64-linux-gnu
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/{{ matrix.arch }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Install QEMU and build tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y qemu-user cmake build-essential
+        sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }}
+
+    - name: Configure CMake for ${{ matrix.arch }}
+      run: |
+        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+              -DCMAKE_C_COMPILER=${{ matrix.triple }}-gcc \
+              -DCMAKE_CXX_COMPILER=${{ matrix.triple }}-g++ \
+              -DCMAKE_CROSSCOMPILING=TRUE \
+              -DCMAKE_SYSTEM_NAME=Linux \
+              -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
+              -DQEMU_RUN=${{ matrix.qemu }} ..
+              --preset unix
+              -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+
+    - name: Run tests with CTest and QEMU
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ctest -V --timeout 300
+          --build-config ${{ matrix.build_type }} \
+          --rerun-failed \
+          --output-on-failure \
+          --test-action test \
+          --tests-regex ".*" \
+          --overwrite MemoryCheckCommand=${{ matrix.qemu }} \
+          --overwrite MemoryCheckCommandOptions="" \
+          --overwrite MemoryCheckType=AddressSanitizer

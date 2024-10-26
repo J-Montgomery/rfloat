@@ -7,6 +7,12 @@ project(
     LANGUAGES CXX
 )
 
+if(CMAKE_CROSSCOMPILING)
+  set(TEST_RUNNER ${QEMU_RUN})
+else()
+  set(TEST_RUNNER)
+endif()
+
 find_package(GTest REQUIRED)
 
 option(RFLOAT_BENCHMARKS "Enable benchmarks" OFF)
@@ -59,7 +65,7 @@ if(RFLOAT_BENCHMARKS)
 endif()
 
 enable_testing()
-gtest_discover_tests(rfloat_tests)
-gtest_discover_tests(rcmath_tests)
-gtest_discover_tests(reproducibility_tests)
+gtest_discover_tests(rfloat_tests PROPERTIES LAUNCHER "${TEST_RUNNER}")
+gtest_discover_tests(rcmath_tests PROPERTIES LAUNCHER "${TEST_RUNNER}")
+gtest_discover_tests(reproducibility_tests PROPERTIES LAUNCHER "${TEST_RUNNER}")
 

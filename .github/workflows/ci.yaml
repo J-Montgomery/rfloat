@@ -19,37 +19,30 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         build_type: [Release]
         cpp_compiler: [g++, clang++, cl]
-        arch: [native, arm, riscv64]
         include:
           - os: windows-latest
             cpp_compiler: cl
             preset: windows
-            arch: native
           - os: ubuntu-latest
+            cpp_compiler: g++
+            preset: unix
+          - os: ubuntu-latest
+            cpp_compiler: clang++
             preset: unix
           - os: macos-latest
             cpp_compiler: clang++
             preset: unix
-            arch: native
         exclude:
           - os: windows-latest
             cpp_compiler: g++
           - os: windows-latest
             cpp_compiler: clang++
-          - os: windows-latest
-            arch: arm
-          - os: windows-latest
-            arch: riscv64
           - os: ubuntu-latest
             cpp_compiler: cl
           - os: macos-latest
             cpp_compiler: cl
           - os: macos-latest
             cpp_compiler: g++
-          - os: macos-latest
-            arch: arm
-          - os: macos-latest
-            arch: riscv64
 
     steps:
     - uses: actions/checkout@v4
@@ -62,9 +55,6 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
       if: ${{ matrix.os }} == 'windows-latest'
-
-    - uses: docker/setup-qemu-action@v3
-      if: ${{ ! startsWith(matrix.arch, 'native') }}
 
     - uses: Bacondish2023/setup-googletest@v1
       with:
