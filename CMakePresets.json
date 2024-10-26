@@ -48,6 +48,18 @@
         }
     },
     {
+        "name": "qemu",
+        "displayName": "Flags for QEMU testing",
+        "description": "Enables unsafe optimizations for reproducibility testing on unixes",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Release",
+            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math;-DRSTD_NONDETERMINISM"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
+        }
+    },
+    {
         "name": "debug",
         "displayName": "Debug config for Clang and GCC",
         "cacheVariables": {
