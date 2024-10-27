@@ -125,6 +125,15 @@ Overloads are only as deterministic as the underlying standard library. Users wh
 | GCC 11   | Untested | Untested | :heavy_check_mark: |
 | MSVC     | :heavy_check_mark: | Untested | Untested |
 
+The following platforms are all continuously tested via QEMU.
+
+| Support | GCC |
+|---------|---------|
+| arm32 | :heavy_check_mark: |
+| aarch64 | :heavy_check_mark: |
+| ppc64el | :heavy_check_mark: |
+| s390x | :heavy_check_mark: |
+| mips64el | :heavy_check_mark: |
 
 ## Goals
 **rfloat** aims to be
@@ -133,7 +142,7 @@ Overloads are only as deterministic as the underlying standard library. Users wh
 - Add zero unnecessary overhead
 - Be deterministic by default. If it compiles, it should be safe unless the user explicitly opts out
 - Be deterministic in all configurations. **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`, as well as LTO
-- Support modern, IEEE-754 compliant architectures. Supporting platforms without IEEE-754 floats is explicitly a non-goal
+- Support all modern, IEEE-754 compliant architectures. Supporting platforms without IEEE-754 floats is explicitly a non-goal
 
 Other libraries like [streflop](https://github.com/abma/streflop) are sensitive to compiler flags or impose additional overheads.
 
