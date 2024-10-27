@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [arm, aarch64]
+        arch: [arm, aarch64, ppc64el, s390x, mips64el]
         include:
           - arch: arm
             qemu: qemu-arm
@@ -20,6 +20,16 @@ jobs:
           - arch: aarch64
             qemu: qemu-aarch64
             triple: aarch64-linux-gnu
+          - arch: ppc64el
+            qemu: qemu-ppc64le
+            triple: powerpc64le-linux-gnu
+          - arch: s390x
+            qemu: qemu-s390x
+            triple: s390x-linux-gnu
+          - arch: mips64el
+            qemu: qemu-mips64el
+            triple: mips64el-linux-gnuabi64
+          # RiscV64 fails to build due to upstream 404 issues with Ubuntu's jammy universe
           # - arch: riscv64
           #   qemu: qemu-riscv64
           #   triple: riscv64-linux-gnu
@@ -35,16 +45,8 @@ jobs:
 
     - name: Install QEMU and build tools
       run: |
-        sudo apt-get update
         sudo apt-get install -y qemu-user qemu-user-static cmake build-essential
         sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }} binutils-${{ matrix.triple }} libgtest-dev
-        sudo dpkg --add-architecture ${{ matrix.arch }}
-        sudo apt-get update
-        sudo apt-get install -y qemu-user-binfmt
-
-    - uses: Bacondish2023/setup-googletest@v1
-      with:
-        tag: v1.14.0
 
     - name: Configure CMake for ${{ matrix.arch }}
       run: |
