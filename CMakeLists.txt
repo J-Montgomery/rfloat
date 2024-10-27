@@ -24,7 +24,7 @@ FetchContent_Declare(
 
 FetchContent_GetProperties(doctest)
 if(NOT doctest_POPULATED)
-    FetchContent_Populate(doctest)
+    FetchContent_MakeAvailable(doctest)
 endif()
 
 add_library(doctest INTERFACE)
