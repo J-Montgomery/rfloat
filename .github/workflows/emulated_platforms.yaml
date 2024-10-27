@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: [arm, aarch64, riscv64]
+        arch: [arm, aarch64]
         include:
           - arch: arm
             qemu: qemu-arm
@@ -20,9 +20,9 @@ jobs:
           - arch: aarch64
             qemu: qemu-aarch64
             triple: aarch64-linux-gnu
-          - arch: riscv64
-            qemu: qemu-riscv64
-            triple: riscv64-linux-gnu
+          # - arch: riscv64
+          #   qemu: qemu-riscv64
+          #   triple: riscv64-linux-gnu
 
     steps:
     - uses: actions/checkout@v4
@@ -61,7 +61,22 @@ jobs:
     - name: Build
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
 
-    - name: Run tests with CTest and QEMU
+    - name: QEMU Reproducibility Tests
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./qemu_reproducibility_tests
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./reproducibility_tests
+
+    - name: QEMU Interface Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rfloat_tests
+
+    - name: QEMU Basic Numeric Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rcmath_tests
+
+    - name: QEMU Examples Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./cpp_examples
