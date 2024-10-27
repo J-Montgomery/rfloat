@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 17)
 project(
     rfloat
-    VERSION 0.1.0
+    VERSION 1.0.0
     LANGUAGES CXX
 )
 
