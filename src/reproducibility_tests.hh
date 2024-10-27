@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array>
-#include <gtest/gtest.h>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -17,7 +16,7 @@ struct TestParam {
 };
 
 template <typename T, std::size_t InputSize, std::size_t OutputSize>
-class ParameterizedTest : public ::testing::Test {
+class ParameterizedTest {
   public:
     static std::vector<TestParam<T, InputSize, OutputSize>>
     LoadTestData(const std::string &data) {

@@ -1,0 +1,84 @@
+name: QEMU Tests
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [arm, aarch64, ppc64el, s390x, mips64el]
+        include:
+          - arch: arm
+            qemu: qemu-arm
+            triple: arm-linux-gnueabihf
+          - arch: aarch64
+            qemu: qemu-aarch64
+            triple: aarch64-linux-gnu
+          - arch: ppc64el
+            qemu: qemu-ppc64le
+            triple: powerpc64le-linux-gnu
+          - arch: s390x
+            qemu: qemu-s390x
+            triple: s390x-linux-gnu
+          - arch: mips64el
+            qemu: qemu-mips64el
+            triple: mips64el-linux-gnuabi64
+          # RiscV64 fails to build due to upstream 404 issues with Ubuntu's jammy universe
+          # - arch: riscv64
+          #   qemu: qemu-riscv64
+          #   triple: riscv64-linux-gnu
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set reusable strings
+      id: strings
+      shell: bash
+      run: |
+        echo "build-output-dir=${{ github.workspace }}/${{ matrix.arch }}/build" >> "$GITHUB_OUTPUT"
+
+    - name: Install QEMU and build tools
+      run: |
+        sudo apt-get install -y qemu-user qemu-user-static cmake build-essential
+        sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }} binutils-${{ matrix.triple }} libgtest-dev
+
+    - name: Configure CMake for ${{ matrix.arch }}
+      run: |
+        cmake -B ${{ steps.strings.outputs.build-output-dir }} \
+              -DCMAKE_CXX_COMPILER=${{ matrix.triple }}-g++ \
+              -DCMAKE_CROSSCOMPILING=TRUE \
+              -DCMAKE_SYSTEM_NAME=Linux \
+              -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
+              -DQEMU_RUN=${{ matrix.qemu }} \
+              .. \
+              --preset qemu \
+              -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+
+    - name: QEMU Reproducibility Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./reproducibility_tests
+
+    - name: QEMU Interface Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rfloat_tests
+
+    - name: QEMU Basic Numeric Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rcmath_tests
+
+    - name: QEMU Examples Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./cpp_examples
