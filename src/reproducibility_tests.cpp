@@ -182,15 +182,30 @@ TEST_CASE("BasicTest.RandomInputsFMA") {
 }
 
 TEST_CASE("Debug.Sqrt") {
-    double x = 240741790.98001355;
-    double y = std::sqrt(x);
+    double list[] = {
+        974348689.58807015,
+        94139670.81675984,
+        494620722.88245404,
+        584298408.20084012,
+        687516480.08111632,
+        240741790.98001355
+    };
 
-    CHECK_EQ(y, 15515.856114955874);
-    std::cout << "\n---Debug Test---\n"
-              << std::setprecision(17)
-              << y << "\n"
-              << 15515.856114955874 << "\n\n";
+    double expected[] = {
+        31214.558936305188,
+        9702.5600135613604,
+        22240.070208577446,
+        24172.265268295399,
+        26220.535465186753,
+        15515.856114955874
+    };
 
+    size_t size = sizeof(list) / sizeof(list[0]);
+
+    for(size_t i = 0; i < size; i++) {
+        double y = std::sqrt(list[i]);
+        CHECK_EQ(y, expected[i]);
+    }
 }
 
 TEST_CASE("BasicTest.RandomInputsSqrt") {
