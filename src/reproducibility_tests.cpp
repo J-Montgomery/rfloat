@@ -181,8 +181,8 @@ TEST_CASE("BasicTest.RandomInputsFMA") {
     }
 }
 
-TEST_CASE("Debug.Sqrt") {
-    double list[] = {
+TEST_CASE("ppc64el.SqrtRoundingBug") {
+    rdouble list[] = {
         974348689.58807015,
         94139670.81675984,
         494620722.88245404,
@@ -191,7 +191,7 @@ TEST_CASE("Debug.Sqrt") {
         240741790.98001355
     };
 
-    double expected[] = {
+    rdouble expected[] = {
         31214.558936305188,
         9702.5600135613604,
         22240.070208577446,
@@ -203,7 +203,7 @@ TEST_CASE("Debug.Sqrt") {
     size_t size = sizeof(list) / sizeof(list[0]);
 
     for(size_t i = 0; i < size; i++) {
-        double y = std::sqrt(list[i]);
+        rdouble y = rstd::sqrt(list[i]);
         CHECK_EQ(y, expected[i]);
     }
 }
