@@ -185,8 +185,13 @@ TEST_CASE("BasicTest.RandomInputsSqrt") {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sqrt_testdata);
     for (const auto &param : test_data) {
+        std::cout << "\n--------\n"
+                  << std::setprecision(19) << param.inputs[0] << "\n"
+                  << rstd::sqrt(param.inputs[0])<< "\n"
+                  << std::sqrt(param.inputs[0].underlying_value()) << "\n"
+                  << param.expected_outputs[0] << "\n\n";
         auto results = rstd::sqrt(param.inputs[0]);
-        CHECK_EQ(results, param.expected_outputs[0]);
+        CHECK_EQ((results == param.expected_outputs[0]), true);
         CHECK_EQ(results, std::sqrt(param.inputs[0].underlying_value()));
     }
 }
