@@ -66,12 +66,12 @@ jobs:
     - name: Configure CMake for ${{ matrix.arch }}
       run: |
         echo "Compiler is ${{ env.compiler }}"
+        ldd --version
         cmake -B ${{ steps.strings.outputs.build-output-dir }} \
               -DCMAKE_CXX_COMPILER=${{ env.compiler }} \
               -DCMAKE_CROSSCOMPILING=TRUE \
               -DCMAKE_SYSTEM_NAME=Linux \
               -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
-              -DQEMU_RUN=${{ matrix.qemu }} \
               -DCMAKE_CXX_FLAGS=${{ env.compiler_flags }} \
               .. \
               --preset qemu \
