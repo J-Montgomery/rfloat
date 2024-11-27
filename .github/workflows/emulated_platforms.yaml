@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        cpp_compiler: [g++, clang++]
         arch: [arm, aarch64, ppc64el, s390x, mips64el]
         include:
           - arch: arm
@@ -43,6 +44,20 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/${{ matrix.arch }}/build" >> "$GITHUB_OUTPUT"
 
+    - name: Set GCC
+      shell: bash
+      if: ${{ matrix.cpp_compiler == 'g++' }}
+      run: |
+        echo 'compiler="${{ matrix.triple }}-g++"' >> $GITHUB_ENV
+        echo 'compiler_flags=""' >> $GITHUB_ENV
+
+    - name: Set Clang
+      shell: bash
+      if: ${{ matrix.cpp_compiler == 'clang++' }}
+      run: |
+        echo 'compiler="clang++"' >> $GITHUB_ENV
+        echo 'compiler_flags="-target ${{ matrix.triple }}"' >> $GITHUB_ENV
+
     - name: Install QEMU and build tools
       run: |
         sudo apt-get install -y qemu-user qemu-user-static cmake build-essential
@@ -50,12 +65,14 @@ jobs:
 
     - name: Configure CMake for ${{ matrix.arch }}
       run: |
+        echo "Compiler is ${{ env.compiler }}"
         cmake -B ${{ steps.strings.outputs.build-output-dir }} \
-              -DCMAKE_CXX_COMPILER=${{ matrix.triple }}-g++ \
+              -DCMAKE_CXX_COMPILER=${{ env.compiler }} \
               -DCMAKE_CROSSCOMPILING=TRUE \
               -DCMAKE_SYSTEM_NAME=Linux \
               -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
               -DQEMU_RUN=${{ matrix.qemu }} \
+              -DCMAKE_CXX_FLAGS=${{ env.compiler_flags }} \
               .. \
               --preset qemu \
               -S ${{ github.workspace }}
