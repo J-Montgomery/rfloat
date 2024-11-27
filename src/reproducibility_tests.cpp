@@ -181,6 +181,18 @@ TEST_CASE("BasicTest.RandomInputsFMA") {
     }
 }
 
+TEST_CASE("Debug.Sqrt") {
+    double x = 240741790.98001355;
+    double y = std::sqrt(x);
+
+    CHECK_EQ(y, 15515.856114955874);
+    std::cout << "\n---Debug Test---\n"
+              << std::setprecision(17)
+              << y << "\n"
+              << 15515.856114955874 << "\n\n";
+
+}
+
 TEST_CASE("BasicTest.RandomInputsSqrt") {
     auto test_data =
         ParameterizedTest<rdouble, 1, 1>::LoadTestData(random_sqrt_testdata);
