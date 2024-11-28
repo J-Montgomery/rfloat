@@ -489,11 +489,17 @@ ReproducibleWrapper<T, R> rint(const ReproducibleWrapper<T, R> &x) {
  * the appropriate HW instructions and throw an error otherwise
  */
 
+/* Clang++ on PPC64 has a bizarre bug where the sqrt() function rounds
+ * the last bit incorrectly in very specific cases. A minimal reproduction
+ * is in the ppc64el.SqrtRoundingBug test.
+ */
+#if (!defined(__clang__) && !defined(__powerpc64__)) || defined(RSTD_NONDETERMINISM)
 template <typename T, rmath::RoundingMode R>
 FEATURE_CXX23(constexpr)
 inline ReproducibleWrapper<T, R> sqrt(const ReproducibleWrapper<T, R> &x) {
     return std::sqrt(x.underlying_value());
 }
+#endif
 
 template <typename T, rmath::RoundingMode R>
 FEATURE_CXX23(constexpr)

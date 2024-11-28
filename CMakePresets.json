@@ -53,7 +53,7 @@
         "description": "Enables unsafe optimizations for reproducibility testing on unixes",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Release",
-            "COMPILE_OPTIONS": "-O3;-pedantic;-fno-math-errno;-ffinite-math-only;-fno-signaling-nans;-fno-trapping-math;-static;-DRSTD_NONDETERMINISM"
+            "COMPILE_OPTIONS": "-O3;-pedantic;-funsafe-math-optimizations;-ffast-math;-static;-DRSTD_NONDETERMINISM"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"
