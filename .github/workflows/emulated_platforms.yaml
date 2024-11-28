@@ -99,3 +99,8 @@ jobs:
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       run: |
         ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./cpp_examples  --test-case-excludes=${{ matrix.expected_failures }}
+
+    - name: QEMU Compiler Bug Tests
+      working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      run: |
+        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./compiler_bug_tests  --test-case-excludes=${{ matrix.expected_failures }}
