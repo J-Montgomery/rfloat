@@ -10,23 +10,28 @@
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [Benchmarks](#benchmarks)
+- [Reproducibility](#reproducibility)
 - [License](#license)
 - [Credit](#credit)
 
 ## Overview
 
-The IEEE-754 standard that defines floating point arithmetic is deterministic under certain conditions. However, floating point code is rarely deterministic and reproducible  in the real world due to:
-- compiler flags
-- compiler optimizations
-- nondeterministic implementations
-- The [Tablemaker's Dilemma](https://perso.ens-lyon.fr/jean-michel.muller/Intro-to-TMD.htm)
+The IEEE-754 standard that defines floating point arithmetic is reproducible under certain conditions. However, floating point code is rarely reproducible  in the real world due to:
 
-This non-reproducibility creates problems for simulations and high-assurance code. Libraries like [dmath](https://github.com/sixitbb/sixit-dmath) implement reproducible
-floating point through a variety of strategies. These strategies come with significant tradeoffs and performance implications. **rfloat** eliminates these performance overheads by tricking the compiler into generating the same instructions that would be generated for normal floating point code, while also preventing non-deterministic compiler optimizations.
+- compiler flags & optimizations
+- non-compliant hardware
+- non-compliant implementations
+- ambiguous standard semantics
+
+The lack of floating point reproducibility creates problems for many applications, especially simulations and high-assurance code. Other libraries [dmath](https://github.com/sixitbb/sixit-dmath) implement reproducible floating point through a variety of strategies, which each have their own significant tradeoffs and performance implications.
+
+**rfloat** is a different approach that eliminates these performance overheads and provides practical reproducibility. It accomplishes this by tricking the compiler into generating the same instructions that would be generated for normal floating point code, while also preventing most non-reproducible compiler optimizations. While this does not address all of the potential sources of non-reproducibility, this is an ideal tradeoff for almost all real-world applications.
+
+Users that need to guarantee complete reproducibility are encouraged to look at soft float alternatives like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/). It is not possible for **rfloat** or any other similar library to guarantee complete reproducibility. See the [Issues](#issues) and [Reproducibility](#reproducibility) sections for further details.
 
 ## Design
 
-The key insight behind this library comes from [Sherry Ignatchenko's talk](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf) on floating point determinism, which observed that C++ can be made deterministic if we can ensure
+The key insight behind this library comes from [Sherry Ignatchenko's talk](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf) on floating point reproducibility, which observed that C++ can be made practically reproducible if we can ensure
 sequencing between subsequent expressions with semicolons ';'. In practice, Clang and GCC
 may optimize across lines, for example converting:
 ```
@@ -34,14 +39,13 @@ float foo = a * b;
 float bar = foo + c;
 ```
 
-
 into something equivalent to:
 `float bar = fma(a, b, c);`
 
-This will result in a more precise result that is ultimately non-deterministic because
+This will result in a more precise result that is ultimately non-reproducible because
 this optimization not guaranteed for all combinations of compiler flags, source code, and platforms.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, /fp:fast is simply disabled for the wrapper class. This results in an additional call per operation when using reproducible types on MSVC if /fp:fast is enabled.
+**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions that forces the compiler to spill intermediate results into registers. On MSVC, `/fp:fast` is simply disabled for the wrapper class. This results in an additional call per operation when using reproducible types on MSVC if `/fp:fast` is enabled.
 
 > [!NOTE]
 > MSVC overhead is not present when using the default setting of /fp:precise.
@@ -100,7 +104,7 @@ Users who need to specific rounding modes should call `rstd::SetRoundingMode<T>(
 
 `<stdfloat>` is supported by defining the `ENABLE_STDFLOAT` macro.
 
-**rfloat** also provides overloads for all of the `<cmath>` functions. Only deterministic overloads are enabled by default. Non-deterministic overloads can be enabled by defining `RSTD_NONDETERMINISM`.
+**rfloat** also provides overloads for all of the `<cmath>` functions. Only reproducible overloads are enabled by default. This encompasses the `abs`, `fma`, `sqrt()` and other basic operations on most platforms. Certain platforms do not implement all operations in a reproducible way. When this occurs, the affected functions can be enabled by defining `RSTD_NONDETERMINISM`. 
 
 ```
 rdouble loan_cost(rdouble principal, rdouble interest_rate) {
@@ -110,12 +114,14 @@ rdouble loan_cost(rdouble principal, rdouble interest_rate) {
 }
 ```
 
-Overloads are only as deterministic as the underlying standard library. Users who need guaranteed determinism should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
+Overloads are only as reproducible as the underlying standard library implementation. Users who need guaranteed reproducibility should evaluate dedicated implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
 
 
 > [!NOTE]
-> If you want to evaluate standard library determinism on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` and `ENABLE_NONDETERMINISTIC_TESTS` when
+> If you want to evaluate standard library reproducibility on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` and `ENABLE_NONDETERMINISTIC_TESTS` when
 > building the reproducibility tests, or by using `--preset debug` during CMake configuration with Clang or GCC.
+
+All known platform reproducibility issues are documented in the [Issues](#issues) section.
 
 ## Platforms
 ### Tested Platforms
@@ -136,28 +142,41 @@ The following platforms are all continuously tested via QEMU.
 | mips64el | :heavy_check_mark: |
 
 ## Goals
-**rfloat** aims to be
-- Easy to integrate with existing code. Converting most code involves adding a single 'r' prefix
-- Support the full range of standard library functionality, including `<cmath>` and `std::numeric_limits`
-- Add zero unnecessary overhead
-- Be deterministic by default. If it compiles, it should be safe unless the user explicitly opts out
-- Be deterministic in all configurations. **rfloat** safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`, as well as LTO
-- Support all modern, IEEE-754 compliant architectures. Supporting platforms without IEEE-754 floats is explicitly a non-goal
+**rfloat** aims to provide the best tradeoff between performance, reproducibility, and ease of use available to typical programs on existing compilers.
+
+- Zero unnecessary overhead
+- Easy to integrate with existing code
+    - Converting most code involves adding a single 'r' prefix
+- Supports the full range of standard library functionality, including `<cmath>` and `std::numeric_limits`
+- Reproducible by default
+    - If it compiles, it should be safe unless the user explicitly opts out
+- Safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`
+- Support all modern, IEEE-754 compliant architectures.
+    - Supporting platforms and runtimes without IEEE-754 operations is explicitly a non-goal
 
 Other libraries like [streflop](https://github.com/abma/streflop) are sensitive to compiler flags or impose additional overheads.
 
 ## Limitations
 
-- This library prohibits some compiler optimizations on code using reproducible types. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime.
-- Ensuring the environment has the correct rounding mode is left up to the user.
+- **rfloat** prohibits some compiler optimizations on code using reproducible types. If you write a loop adding `tmp += a;` 10 times, you'll get 10 separate additions at runtime
+- Ensuring the environment has the correct rounding mode is left up to the user
+- **rfloat** inherently cannot prevent all possible instances of compiler non-reproducibility.
+- **rfloat** does not eliminate reproducibility issues caused by buggy or incomplete hardware implementations
+- **rfloat** is only as reproducible as the inputs provided
+    - The user is responsible for ensuring the same inputs are passed to the same operations in the same order
+    - Float serialization can lead to reproducibility issues
 
 ## Issues
-- MSVC with /fp:fast results in additional overhead because the compiler is forced to
+- MSVC with `/fp:fast` results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang produces unnecessary moves on x64.
-- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing.
+- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing despite extensive search.
 
-Platform non-determinism and reproducibility issues are considered bugs. Please report them.
+Unidentified reproducibility issues are considered bugs. Please report them.
+
+The following reproducibility issues are known:
+    - LLVM does not propagate NaN payloads according to IEEE754.
+    - Clang targeting PPC64el with `-ffast-math` generates non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
 
 ## Benchmarks
 
@@ -205,8 +224,38 @@ All numbers in GFLOPS, rounded to 2 decimal digits.
 | 128k | 7.68 | 4.24| 44.81% |
 | 256k | 7.70 | 4.24 | 44.91% |
 
-The clang slowdown results almost entirely from Clang emitting unnecessary memory stores
-after every floating point operation. Eliminating these stores closes the performance gap, but also emits non-deterministic code.
+The Clang slowdown results from Clang emitting unnecessary memory stores
+after every floating point operation and entirely eliding some functions in the benchmark. This is not a result representative of typical overheads, but is included to illustrate what may occur.
+
+## Reproducibility
+
+Floating point reproducibility is extremely challenging to guarantee because it requires many different layers to work together.
+
+- The IEEE-754 standard must specify a required behavior
+- The floating point hardware must perfectly implement that behavior
+- The compiler must provide a runtime that uses the hardware properly
+- The compiler must not break the floating point semantics of your code when translating it to an executable
+
+All of these layers have reproducibility issues. At the lowest level, The IEEE-754 standard does not specify required behaviors in all situations. For example:
+- operations taking multiple inputs do not have a specified result with multiple NaNs
+- bounds for transcendental math functions are difficult to specify as a result of the [Tablemaker's Dilemma](https://perso.ens-lyon.fr/jean-michel.muller/Intro-to-TMD.htm)
+
+This leads to implementations choosing their own behaviors or worse, providing indeterminate results. Hardware vendors also do not perfectly implement the parts of IEEE-754 which are well specified for reasons of efficiency and cost. For example:
+- ARMv7 FPUs do not support subnormal numbers for performance reasons
+- x86 SSE does not implement the `maxss` and `minss` instructions (max and min functions respectively) according to IEEE-754 semantics
+    - IEEE-754 requires returning the non-NaN argument if one argument is NaN
+    - x86 returns the second argument unconditionally. This allows compilers to implement ternary operators like the `MAX` and `MIN` macros in a single instruction.
+
+Occasionally, compiler runtimes also do not implement the IEEE-754 standard correctly. **rfloat** does not define `rstd::sqrt` when built with clang for the PPC64el target because the optimizer incorrectly optimizes the runtime implementation in certain situations. These situations are rare and generally not encountered in real programs, although **rfloat** maintains [compiler bug tests](src/compiler_bug_tests.cpp) to document discovered examples.
+
+Compilers sometimes simply fail to maintain IEEE-754 semantics while translating code into executables. This can have significant optimization benefits, but in many cases breakages are simply not noticeable for typical applications. For example:
+- LLVM does not correctly propagate NaN values between operations even in `strictfp` mode. LLVM also does not commit to a single strategy either, choosing between a number of NaN strategies depending on the situation.
+
+A more common reproducibility issue is an intentional breakage that often benefits application code, floating point contraction. Compilers are not able to guarantee that all possible contractions are optimized across all possible targets, which means that different programs accumulate rounding errors slightly differently when built for new targets or even the same target with a new compiler version. This behavior can usually be disabled with appropriate compiler flags, but disabling the behavior at a more fine-grained level or tracking down where all the differences have occurred is not generally possible.
+
+Many compilers also implement configuration flags that explicitly allow them to break IEEE-754 semantics when translating code. These flags are often specified at the level of an entire translation unit or even an entire project, making it difficult to build applications where only part of the code must ensure reproducibility.
+
+Compiler breakages introduce the vast majority of floating point reproducibility issues. This is also the layer that **rfloat** targets. By resolving these breakages, most programs that anyone would intentionally write can be made reproducible without additional overhead, or significant changes.
 
 ## License
 
@@ -216,5 +265,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3375r0.html) proposal and Sherry Ignatchenko's talk on[`Cross-Platform Floating-Point Determinism Out of the Box`](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf).
 
+## Additional Resources
+
+[Agner Fog on NaN Payload Propagation](https://grouper.ieee.org/groups/msc/ANSI_IEEE-Std-754-2019/background/nan-propagation.pdf)
 
 

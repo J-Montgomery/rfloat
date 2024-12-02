@@ -15,7 +15,7 @@
  * float, likely due to round-off error from the generated code changing
  * slightly when the function size hits some threshold that prevents inlining.
  * When this happens the sqrt() call will return 15515.856114955872 instead of
- * 15515.856114955874.
+ * 15515.856114955874. Tested on Clang++ v14.0.0
  */
 TEST_CASE("ppc64el.SqrtRoundingBug") {
     rdouble inputs[] = {974348689.58807015, 94139670.81675984,
