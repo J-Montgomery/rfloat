@@ -13,6 +13,7 @@
 - [Reproducibility](#reproducibility)
 - [License](#license)
 - [Credit](#credit)
+- [Additional Resources](#resources)
 
 ## Overview
 
@@ -133,28 +134,32 @@ All known platform reproducibility issues are documented in the [Issues](#issues
 
 The following platforms are all continuously tested via QEMU.
 
-| Support | GCC |
-|---------|---------|
-| arm32 | :heavy_check_mark: |
-| aarch64 | :heavy_check_mark: |
-| ppc64el | :heavy_check_mark: |
-| s390x | :heavy_check_mark: |
-| mips64el | :heavy_check_mark: |
+| Support | GCC | Clang |
+|---------|---------|---------|
+| arm32 | :heavy_check_mark: | :heavy_check_mark: |
+| aarch64 | :heavy_check_mark: | :heavy_check_mark: |
+| ppc64el | :heavy_check_mark: | :heavy_check_mark:\* |
+| s390x | :heavy_check_mark: | :heavy_check_mark: |
+| mips64el | :heavy_check_mark: | :heavy_check_mark: |
+
+> [!NOTE]
+> Platform combinations with an asterisk have [documented issues](#issues)
 
 ## Goals
-**rfloat** aims to provide the best tradeoff between performance, reproducibility, and ease of use available to typical programs on existing compilers.
+**rfloat** aims to provide the best tradeoff between performance, reproducibility, and ease of use for most applications.
 
 - Zero unnecessary overhead
 - Easy to integrate with existing code
     - Converting most code involves adding a single 'r' prefix
 - Supports the full range of standard library functionality, including `<cmath>` and `std::numeric_limits`
 - Reproducible by default
-    - If it compiles, it should be safe unless the user explicitly opts out
+    - If it compiles, it is reproducible unless the user explicitly opts out
 - Safely supports dangerous compiler flags like `-ffast-math` and `-funsafe-math-optimizations`
-- Support all modern, IEEE-754 compliant architectures.
-    - Supporting platforms and runtimes without IEEE-754 operations is explicitly a non-goal
+- Supports all modern, IEEE-754 compliant architectures.
 
-Other libraries like [streflop](https://github.com/abma/streflop) are sensitive to compiler flags or impose additional overheads.
+
+> [!NOTE]
+> Although supporting non-IEEE-754 platforms and runtimes is explicitly not a goal, using **rfloat** will improve reproducibility even on platforms that are not fully compliant.
 
 ## Limitations
 
@@ -167,16 +172,18 @@ Other libraries like [streflop](https://github.com/abma/streflop) are sensitive 
     - Float serialization can lead to reproducibility issues
 
 ## Issues
+
+Performance issues and uncertainty:
+
 - MSVC with `/fp:fast` results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang produces unnecessary moves on x64.
-- Due to GCC Issue #71246, there may be issues with certain combinations of compiler flags and platforms that have not been detected by testing despite extensive search.
+- Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), there may be issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
 
-Unidentified reproducibility issues are considered bugs. Please report them.
+Unidentified reproducibility issues are considered bugs, please report them. The following reproducibility issues are known to occur:
 
-The following reproducibility issues are known:
-    - LLVM does not propagate NaN payloads according to IEEE754.
-    - Clang targeting PPC64el with `-ffast-math` generates non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
+- LLVM does not propagate NaN payloads according to IEEE754.
+- Clang targeting PPC64el with `-ffast-math` generates non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
 
 ## Benchmarks
 
@@ -265,7 +272,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3375r0.html) proposal and Sherry Ignatchenko's talk on[`Cross-Platform Floating-Point Determinism Out of the Box`](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf).
 
-## Additional Resources
+## Resources
 
 [Agner Fog on NaN Payload Propagation](https://grouper.ieee.org/groups/msc/ANSI_IEEE-Std-754-2019/background/nan-propagation.pdf)
 
