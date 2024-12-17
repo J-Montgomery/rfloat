@@ -8,6 +8,9 @@ on:
   push:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -45,32 +48,35 @@ jobs:
             cpp_compiler: g++
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        persist-credentials: false
 
-    - name: Set reusable strings
-      id: strings
-      shell: bash
-      run: |
-        echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
-
-    - uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
       if: ${{ matrix.os }} == 'windows-latest'
 
-    - uses: Bacondish2023/setup-googletest@v1
-      with:
-        tag: v1.14.0
+    - uses: Bacondish2023/setup-googletest@49065d1f7a6d21f6134864dd65980fe5dbe06c73 # v1.0.1
 
     - name: Configure CMake
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
       run: >
-        cmake -B ${{ steps.strings.outputs.build-output-dir }}
+        echo "$BUILD_DIR"
+        cmake -B "$BUILD_DIR"
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         --preset ${{ matrix.preset }}
-        -S ${{ github.workspace }}
+        -S "${{ github.workspace }}"
 
     - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: >
+        echo "$BUILD_DIR"
+        cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
 
     - name: Test
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: >
+        ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure

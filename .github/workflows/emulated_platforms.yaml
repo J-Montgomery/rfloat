@@ -7,6 +7,9 @@ on:
   push:
     branches: [master]
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -47,26 +50,27 @@ jobs:
           #   triple: riscv64-linux-gnu
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        persist-credentials: false
 
-    - name: Set reusable strings
-      id: strings
+    - name: Set output directory
       shell: bash
       run: |
-        echo "build-output-dir=${{ github.workspace }}/${{ matrix.arch }}/build" >> "$GITHUB_OUTPUT"
+        echo "build_dir=${{ github.workspace }}/${{ matrix.arch }}/build" >> "$GITHUB_ENV"
 
     - name: Set GCC
       shell: bash
       if: ${{ matrix.cpp_compiler == 'g++' }}
       run: |
-        echo 'compiler="${{ matrix.triple }}-g++"' >> $GITHUB_ENV
+        echo "compiler=${{ matrix.triple }}-g++" >> $GITHUB_ENV
         echo 'compiler_flags=""' >> $GITHUB_ENV
 
     - name: Set Clang
       shell: bash
       if: ${{ matrix.cpp_compiler == 'clang++' }}
       run: |
-        echo 'compiler="clang++"' >> $GITHUB_ENV
+        echo "compiler=clang++" >> $GITHUB_ENV
         echo 'compiler_flags="-target ${{ matrix.triple }}"' >> $GITHUB_ENV
 
     - name: Install QEMU and build tools
@@ -75,41 +79,73 @@ jobs:
         sudo apt-get install -y gcc-${{ matrix.triple }} g++-${{ matrix.triple }} binutils-${{ matrix.triple }} libgtest-dev
 
     - name: Configure CMake for ${{ matrix.arch }}
-      run: |
-        cmake -B ${{ steps.strings.outputs.build-output-dir }} \
-              -DCMAKE_CXX_COMPILER=${{ env.compiler }} \
+      env:
+        BUILD_DIR: ${{ env.build_dir }}
+        COMPILER: ${{ env.compiler }}
+        ARCH: ${{ matrix.arch }}
+        COMPILER_FLAGS: ${{ env.compiler_flags }}
+        WORKSPACE: ${{ github.workspace }}
+      run: cmake -B $BUILD_DIR \
+              -DCMAKE_CXX_COMPILER="$COMPILER" \
               -DCMAKE_CROSSCOMPILING=TRUE \
               -DCMAKE_SYSTEM_NAME=Linux \
-              -DCMAKE_SYSTEM_PROCESSOR=${{ matrix.arch }} \
-              -DCMAKE_CXX_FLAGS=${{ env.compiler_flags }} \
-              .. \
-              --preset qemu \
-              -S ${{ github.workspace }}
+              -DCMAKE_SYSTEM_PROCESSOR=$ARCH \
+              -DCMAKE_CXX_FLAGS=$COMPILER_FLAGS \
+              -S $WORKSPACE \
+              --preset qemu
 
     - name: Build
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config Release
+      env:
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        cmake --build "$BUILD_DIR" --config Release
 
     - name: QEMU Reproducibility Tests
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./reproducibility_tests --test-case-exclude=${{ matrix.expected_failures }}
+      env:
+        QEMU: ${{ matrix.qemu }}
+        TRIPLE: ${{ matrix.triple }}
+        EXCLUDE: ${{ matrix.expected_failures }}
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        echo "$BUILD_DIR" > /dev/null
+        "$QEMU" -L "/usr/$TRIPLE" $BUILD_DIR/reproducibility_tests --test-case-exclude="$EXCLUDE"
 
     - name: QEMU Interface Tests
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rfloat_tests  --test-case-exclude=${{ matrix.expected_failures }}
+      env:
+        QEMU: ${{ matrix.qemu }}
+        TRIPLE: ${{ matrix.triple }}
+        EXCLUDE: ${{ matrix.expected_failures }}
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        echo "$BUILD_DIR" > /dev/null
+        "$QEMU" -L "/usr/$TRIPLE" $BUILD_DIR/rfloat_tests --test-case-exclude="$EXCLUDE"
 
     - name: QEMU Basic Numeric Tests
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./rcmath_tests  --test-case-exclude=${{ matrix.expected_failures }}
+      env:
+        QEMU: ${{ matrix.qemu }}
+        TRIPLE: ${{ matrix.triple }}
+        EXCLUDE: ${{ matrix.expected_failures }}
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        echo "$BUILD_DIR" > /dev/null
+        "$QEMU" -L "/usr/$TRIPLE" $BUILD_DIR/rcmath_tests --test-case-exclude="$EXCLUDE"
 
     - name: QEMU Examples Tests
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./cpp_examples  --test-case-exclude=${{ matrix.expected_failures }}
+      env:
+        QEMU: ${{ matrix.qemu }}
+        TRIPLE: ${{ matrix.triple }}
+        EXCLUDE: ${{ matrix.expected_failures }}
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        echo "$BUILD_DIR" > /dev/null
+        "$QEMU" -L "/usr/$TRIPLE" $BUILD_DIR/cpp_examples --test-case-exclude="$EXCLUDE"
 
     - name: QEMU Compiler Bug Tests
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: |
-        ${{ matrix.qemu }} -L /usr/${{ matrix.triple }} ./compiler_bug_tests  --test-case-exclude=${{ matrix.expected_failures }}
+      env:
+        QEMU: ${{ matrix.qemu }}
+        TRIPLE: ${{ matrix.triple }}
+        EXCLUDE: ${{ matrix.expected_failures }}
+        BUILD_DIR: ${{ env.build_dir }}
+      run: >
+        echo "$BUILD_DIR" > /dev/null
+        "$QEMU" -L "/usr/$TRIPLE" $BUILD_DIR/compiler_bug_tests --test-case-exclude="$EXCLUDE"
