@@ -335,6 +335,7 @@ TEST_CASE("InterfaceTest.check_conversion_docs") {
     CHECK_EQ(f, f1);
 }
 
+#if defined(RSTD_NONDETERMINISM) && defined(ENABLE_NONDETERMINISTIC_TESTS)
 TEST_CASE("InterfaceTest.check_docs_interest_example") {
     rdouble principal{1000.0};
     rdouble interest_rate{5.0};
@@ -344,6 +345,8 @@ TEST_CASE("InterfaceTest.check_docs_interest_example") {
     auto total = principal * rstd::pow(rate + 1.0, term);
     CHECK_FLOAT_EQ(total.underlying_value(), 1276.2815625);
 }
+#endif /* defined(RSTD_NONDETERMINISM) &&                                      \
+          defined(ENABLE_NONDETERMINISTIC_TESTS) */
 
 TEST_CASE("InterfaceTest.unordered_map_basic") {
     std::unordered_map<rfloat, rfloat> m;
