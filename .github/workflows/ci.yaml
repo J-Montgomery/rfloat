@@ -55,8 +55,6 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
       if: ${{ matrix.os }} == 'windows-latest'
 
-    - uses: Bacondish2023/setup-googletest@49065d1f7a6d21f6134864dd65980fe5dbe06c73 # v1.0.1
-
     - name: Configure CMake
       env:
         BUILD_DIR: ${{ github.workspace }}/build
@@ -73,7 +71,7 @@ jobs:
         BUILD_DIR: ${{ github.workspace }}/build
       run: >
         echo "$BUILD_DIR"
-        cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
+        cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }} --parallel 2
 
     - name: Test
       env:

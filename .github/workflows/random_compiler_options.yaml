@@ -18,10 +18,10 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Release]
         # How many tests per workflow run
-        test_combination: [1]
+        test_combination: [1, 2, 3, 4, 5]
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       with:
         persist-credentials: false
 
@@ -45,10 +45,6 @@ jobs:
       env:
         COMPILER_OPTIONS: ${{ env.ALL_OPTIONS }}
       run: |
-
-        echo "Available options:"
-        echo "$ALL_OPTIONS"
-
         readarray -t OPTIONS <<< "$COMPILER_OPTIONS"
 
         # Select a random optimization level
@@ -60,7 +56,6 @@ jobs:
 
         # Randomly select 5-15 compiler options
         NUM_OPTIONS=$((5 + RANDOM % 11))
-        echo "Selected $NUM_OPTIONS options"
         SELECTED_OPTIONS="$BASE_OPT $BASE_DEFINES"
 
         for ((i=0; i<NUM_OPTIONS; i++)); do
@@ -72,15 +67,12 @@ jobs:
             OPT="${OPT}${RANDOM}"
           fi
 
-          echo "Generated option $OPT"
           SELECTED_OPTIONS="$SELECTED_OPTIONS $OPT"
         done
 
         # Save to output
         echo "COMPILER_FLAGS=$SELECTED_OPTIONS" >> $GITHUB_ENV
       shell: bash
-
-    - uses: Bacondish2023/setup-googletest@v1.0.1
 
     - name: Configure CMake
       id: configure
@@ -99,7 +91,7 @@ jobs:
       id: build
       env:
         BUILD_DIR: ${{ github.workspace }}/build
-      run: cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
+      run: cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }} --parallel 2
 
     - name: Test
       if: steps.build.outcome == 'success'

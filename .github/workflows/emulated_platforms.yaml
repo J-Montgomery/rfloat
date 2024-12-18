@@ -98,7 +98,7 @@ jobs:
       env:
         BUILD_DIR: ${{ env.build_dir }}
       run: >
-        cmake --build "$BUILD_DIR" --config Release
+        cmake --build "$BUILD_DIR" --config Release --parallel 2
 
     - name: QEMU Reproducibility Tests
       env:
