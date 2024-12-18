@@ -1,0 +1,135 @@
+name: CI Random Compiler Options
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # We want to see all results
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release]
+        # How many tests per workflow run
+        test_combination: [1, 2, 3, 4, 5]
+
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      with:
+        persist-credentials: false
+
+    - name: Generate Random Compiler Options
+      id: compiler-options
+      env:
+        COMPILER_OPTIONS: ${{ env.ALL_OPTIONS }}
+      run: |
+        OPT_LEVELS=(-O0 -O1 -O2 -O3 -Os -Ofast)
+        BASE_OPT=${OPT_LEVELS[$RANDOM % ${#OPT_LEVELS[@]}]}
+
+        TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM)
+        BASE_DEFINES=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
+
+        FLAGS=(
+          -fno-inline
+          -fno-unroll-loops
+          -fomit-frame-pointer
+          -ffast-math
+          -fno-math-errno
+          -funsafe-math-optimizations
+          -ffinite-math-only
+          -fno-signed-zeros
+          -fno-trapping-math
+          -ftrapping-math
+          -frounding-math
+          -fsingle-precision-constant
+          -fcx-limited-range
+        )
+
+        PARAM_FLAGS=(
+          "inline-unit-growth=20"
+          "max-inline-insns-auto=30"
+          "max-inline-insns-single=50"
+          "large-function-growth=100"
+          "inline-min-speedup=10"
+        )
+
+        NUM_FLAGS=$((1 + RANDOM % 5))
+        SELECTED_OPTIONS="$BASE_OPT $BASE_DEFINES"
+
+        for ((i=0; i<NUM_FLAGS; i++)); do
+          IDX=$((RANDOM % ${#FLAGS[@]}))
+          SELECTED_OPTIONS="$SELECTED_OPTIONS ${FLAGS[$IDX]}"
+        done
+
+        NUM_PARAMS=$((RANDOM % 3))
+        for ((i=0; i<NUM_PARAMS; i++)); do
+          IDX=$((RANDOM % ${#PARAM_FLAGS[@]}))
+          SELECTED_OPTIONS="$SELECTED_OPTIONS --param ${PARAM_FLAGS[$IDX]}"
+        done
+
+        echo "COMPILER_FLAGS=$SELECTED_OPTIONS" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Configure CMake
+      id: configure
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+        COMPILER_FLAGS: ${{ env.COMPILER_FLAGS }}
+      run: |
+        echo "Using compiler flags: $COMPILER_FLAGS"
+        cmake -B "$BUILD_DIR" \
+          -DCMAKE_CXX_COMPILER=g++ \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_FLAGS="${COMPILER_FLAGS}" \
+          -S "${{ github.workspace }}"
+
+    - name: Build
+      id: build
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }} --parallel 2
+
+    - name: Test
+      if: steps.build.outcome == 'success'
+      continue-on-error: true
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure
+
+    - name: Report Build Results
+      if: always()
+      env:
+        COMPILER_FLAGS: ${{ env.compiler_flags }}
+        CONFIGURE_RESULT: ${{ steps.configure.outcome }}
+        BUILD_RESULT: ${{ steps.build.outcome }}
+      run: |
+        echo "Build Report"
+        echo "============"
+        echo "Compiler flags used:"
+        echo "$COMPILER_FLAGS"
+        echo ""
+        echo "Configure result: $CONFIGURE_RESULT"
+        echo "Build result: $BUILD_RESULT"
+
+        # Store results in a file for potential analysis
+        {
+          echo "timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "flags: $COMPILER_FLAGS"
+          echo "configure_result: $CONFIGURE_RESULT"
+          echo "build_result: $BUILD_RESULT"
+          echo "---"
+        } >> "${{ github.workspace }}/compiler_test_results.yml"
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiler-test-results
+        path: ${{ github.workspace }}/compiler_test_results.yml
