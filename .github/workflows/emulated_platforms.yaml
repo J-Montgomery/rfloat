@@ -1,9 +1,9 @@
 name: QEMU Tests
 
 on:
-  # workflow_dispatch: {}
-  # pull_request:
-  #   branches: [master]
+  workflow_dispatch: {}
+  pull_request:
+    branches: [master]
   push:
     branches: [master]
 
@@ -44,10 +44,9 @@ jobs:
             qemu: qemu-mips64el
             triple: mips64el-linux-gnuabi64
             expected_failures: ''
-          # RiscV64 fails to build due to upstream 404 issues with Ubuntu's jammy universe
-          # - arch: riscv64
-          #   qemu: qemu-riscv64
-          #   triple: riscv64-linux-gnu
+          - arch: riscv64
+            qemu: qemu-riscv64
+            triple: riscv64-linux-gnu
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
