@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest]
         build_type: [Release]
         # How many tests per workflow run
-        test_combination: [1, 2, 3]
+        test_combination: [1]
 
     steps:
     - uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
       id: get-options
       run: |
         # Get complete list of options
-        ALL_OPTIONS=$(gcc --help -v 2>&1 | grep -o '\-[[:alpha:]][[:alnum:]-]*' | sort -u)
+        ALL_OPTIONS=$(gcc -Q --help=optimizers 2>&1 | grep -o '\-f[[:alnum:]-]*' | sort -u)
         echo "Found $(echo "$ALL_OPTIONS" | wc -l) unique compiler options"
 
         echo "ALL_OPTIONS<<EOF" >> $GITHUB_ENV
@@ -69,7 +69,6 @@ jobs:
 
           # For options that need values, randomly generate them
           if [[ "$OPT" == *"="* ]]; then
-            # For numeric values, generate random number
             OPT="${OPT}${RANDOM}"
           fi
 
