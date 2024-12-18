@@ -1,0 +1,134 @@
+name: CI Random Compiler Options
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR Number'
+        required: true
+        type: string
+
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # We want to see all results
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        build_type: [Release]
+        # How many tests per workflow run
+        test_combination: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Get All GCC Options
+      id: get-options
+      run: |
+        # Get complete list of options
+        ALL_OPTIONS=$(gcc --help -v 2>&1 | grep -o '\-[[:alpha:]][[:alnum:]-]*' | sort -u)
+        echo "Found $(echo "$ALL_OPTIONS" | wc -l) unique compiler options"
+        echo "all_options<<EOF" >> $GITHUB_OUTPUT
+        echo "$ALL_OPTIONS" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_OUTPUT
+
+    - name: Generate Random Compiler Options
+      id: compiler-options
+      env:
+        COMPILER_OPTIONS: ${{ env.ALL_OPTIONS }}
+      run: |
+        # Read all options into an array
+        readarray -t OPTIONS <<< "$COMPILER_OPTIONS"
+
+        # Basic optimization level (always include one)
+        OPT_LEVELS=(-O0 -O1 -O2 -O3 -Os -Ofast)
+        BASE_OPT=${OPT_LEVELS[$RANDOM % ${#OPT_LEVELS[@]}]}
+
+        TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM)
+        BASE_OPT=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
+
+        # Randomly select 5-15 compiler options
+        NUM_OPTIONS=$((5 + RANDOM % 11))
+        SELECTED_OPTIONS="$BASE_OPT"
+
+        for ((i=0; i<NUM_OPTIONS; i++)); do
+          # Select random option
+          IDX=$((RANDOM % ${#OPTIONS[@]}))
+          OPT="${OPTIONS[$IDX]}"
+
+          # For options that need values, randomly generate them
+          if [[ "$OPT" == *"="* ]]; then
+            # For numeric values, generate random number
+            OPT="${OPT}${RANDOM}"
+          fi
+
+          SELECTED_OPTIONS="$SELECTED_OPTIONS $OPT"
+        done
+
+        # Save to output
+        echo "COMPILER_FLAGS=$SELECTED_OPTIONS" >> $GITHUB_ENV
+      shell: bash
+
+    - uses: Bacondish2023/setup-googletest@v1.0.1
+
+    - name: Configure CMake
+      id: configure
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+        COMPILER_FLAGS: ${{ env.COMPILER_FLAGS }}
+      run: |
+        echo "Using compiler flags: $COMPILER_FLAGS"
+        cmake -B "$BUILD_DIR" \
+          -DCMAKE_CXX_COMPILER=g++ \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_CXX_FLAGS="${COMPILER_FLAGS}" \
+          -S "${{ github.workspace }}"
+
+    - name: Build
+      id: build
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: cmake --build "$BUILD_DIR" --config ${{ matrix.build_type }}
+
+    - name: Test
+      if: steps.build.outcome == 'success'
+      continue-on-error: true
+      env:
+        BUILD_DIR: ${{ github.workspace }}/build
+      run: ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure
+
+    - name: Report Build Results
+      if: always()
+      env:
+        COMPILER_FLAGS: ${{ env.compiler_flags }}
+        CONFIGURE_RESULT: ${{ steps.configure.outcome }}
+        BUILD_RESULT: ${{ steps.build.outcome }}
+      run: |
+        echo "Build Report"
+        echo "============"
+        echo "Compiler flags used:"
+        echo "$COMPILER_FLAGS"
+        echo ""
+        echo "Configure result: $CONFIGURE_RESULT"
+        echo "Build result: $BUILD_RESULT"
+
+        # Store results in a file for potential analysis
+        {
+          echo "timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          echo "flags: $COMPILER_FLAGS"
+          echo "configure_result: $CONFIGURE_RESULT"
+          echo "build_result: $BUILD_RESULT"
+          echo "---"
+        } >> "${{ github.workspace }}/compiler_test_results.yml"
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: compiler-test-results
+        path: ${{ github.workspace }}/compiler_test_results.yml
