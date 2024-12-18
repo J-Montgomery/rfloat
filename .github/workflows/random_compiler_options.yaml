@@ -31,8 +31,13 @@ jobs:
         # Get complete list of options
         ALL_OPTIONS=$(gcc --help -v 2>&1 | grep -o '\-[[:alpha:]][[:alnum:]-]*' | sort -u)
         echo "Found $(echo "$ALL_OPTIONS" | wc -l) unique compiler options"
+
+        echo "ALL_OPTIONS<<EOF" >> $GITHUB_ENV
+        echo "$ALL_OPTIONS" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
         echo "all_options<<EOF" >> $GITHUB_OUTPUT
-        echo "ALL_OPTIONS=$all_options" >> "$GITHUB_ENV"
+        echo "$ALL_OPTIONS" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Generate Random Compiler Options
@@ -40,22 +45,25 @@ jobs:
       env:
         COMPILER_OPTIONS: ${{ env.ALL_OPTIONS }}
       run: |
-        # Read all options into an array
+
+        echo "Available options:"
+        echo "$ALL_OPTIONS"
+
         readarray -t OPTIONS <<< "$COMPILER_OPTIONS"
 
-        # Basic optimization level (always include one)
+        # Select a random optimization level
         OPT_LEVELS=(-O0 -O1 -O2 -O3 -Os -Ofast)
         BASE_OPT=${OPT_LEVELS[$RANDOM % ${#OPT_LEVELS[@]}]}
 
         TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM)
-        BASE_OPT=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
+        BASE_DEFINES=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
 
         # Randomly select 5-15 compiler options
         NUM_OPTIONS=$((5 + RANDOM % 11))
-        SELECTED_OPTIONS="$BASE_OPT"
+        echo "Selected $NUM_OPTIONS options"
+        SELECTED_OPTIONS="$BASE_OPT $BASE_DEFINES"
 
         for ((i=0; i<NUM_OPTIONS; i++)); do
-          # Select random option
           IDX=$((RANDOM % ${#OPTIONS[@]}))
           OPT="${OPTIONS[$IDX]}"
 
@@ -65,6 +73,7 @@ jobs:
             OPT="${OPT}${RANDOM}"
           fi
 
+          echo "Generated option $OPT"
           SELECTED_OPTIONS="$SELECTED_OPTIONS $OPT"
         done
 
