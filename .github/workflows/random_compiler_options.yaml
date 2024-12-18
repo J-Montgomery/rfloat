@@ -25,52 +25,55 @@ jobs:
       with:
         persist-credentials: false
 
-    - name: Get All GCC Options
-      id: get-options
-      run: |
-        # Get complete list of options
-        ALL_OPTIONS=$(gcc -Q --help=optimizers 2>&1 | grep -o '\-f[[:alnum:]-]*' | sort -u)
-        echo "Found $(echo "$ALL_OPTIONS" | wc -l) unique compiler options"
-
-        echo "ALL_OPTIONS<<EOF" >> $GITHUB_ENV
-        echo "$ALL_OPTIONS" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
-
-        echo "all_options<<EOF" >> $GITHUB_OUTPUT
-        echo "$ALL_OPTIONS" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-
     - name: Generate Random Compiler Options
       id: compiler-options
       env:
         COMPILER_OPTIONS: ${{ env.ALL_OPTIONS }}
       run: |
-        readarray -t OPTIONS <<< "$COMPILER_OPTIONS"
-
-        # Select a random optimization level
         OPT_LEVELS=(-O0 -O1 -O2 -O3 -Os -Ofast)
         BASE_OPT=${OPT_LEVELS[$RANDOM % ${#OPT_LEVELS[@]}]}
 
         TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM)
         BASE_DEFINES=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
 
-        # Randomly select 5-15 compiler options
-        NUM_OPTIONS=$((5 + RANDOM % 11))
+        FLAGS=(
+          -fno-inline
+          -fno-unroll-loops
+          -fomit-frame-pointer
+          -ffast-math
+          -fno-math-errno
+          -funsafe-math-optimizations
+          -ffinite-math-only
+          -fno-signed-zeros
+          -fno-trapping-math
+          -ftrapping-math
+          -frounding-math
+          -fsingle-precision-constant
+          -fcx-limited-range
+        )
+
+        PARAM_FLAGS=(
+          "inline-unit-growth=20"
+          "max-inline-insns-auto=30"
+          "max-inline-insns-single=50"
+          "large-function-growth=100"
+          "inline-min-speedup=10"
+        )
+
+        NUM_FLAGS=$((1 + RANDOM % 5))
         SELECTED_OPTIONS="$BASE_OPT $BASE_DEFINES"
 
-        for ((i=0; i<NUM_OPTIONS; i++)); do
-          IDX=$((RANDOM % ${#OPTIONS[@]}))
-          OPT="${OPTIONS[$IDX]}"
-
-          # For options that need values, randomly generate them
-          if [[ "$OPT" == *"="* ]]; then
-            OPT="${OPT}${RANDOM}"
-          fi
-
-          SELECTED_OPTIONS="$SELECTED_OPTIONS $OPT"
+        for ((i=0; i<NUM_FLAGS; i++)); do
+          IDX=$((RANDOM % ${#FLAGS[@]}))
+          SELECTED_OPTIONS="$SELECTED_OPTIONS ${FLAGS[$IDX]}"
         done
 
-        # Save to output
+        NUM_PARAMS=$((RANDOM % 3))
+        for ((i=0; i<NUM_PARAMS; i++)); do
+          IDX=$((RANDOM % ${#PARAM_FLAGS[@]}))
+          SELECTED_OPTIONS="$SELECTED_OPTIONS --param ${PARAM_FLAGS[$IDX]}"
+        done
+
         echo "COMPILER_FLAGS=$SELECTED_OPTIONS" >> $GITHUB_ENV
       shell: bash
 
