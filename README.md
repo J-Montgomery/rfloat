@@ -1,21 +1,45 @@
 # **rfloat**
 
-**rfloat** is a header-only library that makes your floating point code reproducible with zero overhead. Convert existing code with just `r`. Compatible with C++17 and newer.
+**rfloat** is a header-only library that makes your floating point code reproducible with zero overhead.
 
 ## Table of Contents
-- [Overview](#overview)
-- [Usage](#usage)
-- [Platform Support](#platforms)
-- [Project Goals](#goals)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Why is Reproduccibility Important](#why-is-reproducibility-important)
+- [Examples](#examples)
+- [Design](#design)
+- [Supported Platforms](#supported-platforms)
+- [Goals](#goals)
 - [Limitations](#limitations)
 - [Issues](#issues)
 - [Benchmarks](#benchmarks)
-- [Reproducibility](#reproducibility)
+- [Reproducibility Guarantees](#reproducibility-guarantees)
 - [License](#license)
 - [Credit](#credit)
 - [Additional Resources](#resources)
 
-## Overview
+## Features
+
+- Zero unnecessary overhead
+- Header-only
+- Convert existing code with an `r` prefix
+- Supports all major compilers
+- Supports all major platforms
+- Zero dependencies
+- Full <cmath> support
+- Compatible with C++17 and newer
+
+## Quick Start
+
+1. Include the `<rfloat>` header.
+
+3. Replace usages of `float` & `double` with `rfloat` & `rdouble`.
+
+4. **Optional** Replace `cmath` functions with their `rstd` equivalents.
+
+    `std::sqrt` → `rstd::sqrt`
+
+## Why is Reproducibility Important?
 
 IEEE-754 floating point arithmetic is reproducible under certain conditions. However, floating point code is rarely reproducible in real programs due to:
 
@@ -29,12 +53,9 @@ Floating point non-reproducibility creates problems for many applications, espec
 **rfloat** uses a different approach focused on preventing the compiler from performing dangerous optimizations while still allowing it to generate the same instructions it otherwise would. This isn't perfect, but it's an excellent tradeoff that provides reproducibility in practice for almost all applications.
 
 > [!NOTE]
-> It's impossible for any hard float library to guarantee complete reproducibility. Users that need such guarantees should consider soft float alternatives like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/). See the [Reproducibility](#reproducibility) section for further details on why this is difficult.
+> It's impossible for any hard float library to guarantee complete reproducibility. Users that need such guarantees should consider soft float alternatives like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/). See the section on [Reproducibility Guarantees](#reproducibility-guarantees) on why this is difficult.
 
-## Usage
-
-Use **rfloat** by including the `<rfloat>` header and replacing usages
-of `float` & `double` with `rfloat` & `rdouble`.
+## Examples
 
 ```
 #include <rfloat>
@@ -106,7 +127,7 @@ Platform reproducibility issues are documented in the [Issues](#issues) section.
 
 ## Design
 
-The key insight behind this library comes from [Sherry Ignatchenko's talk](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf) on floating point reproducibility, which observed that C++ can be made practically reproducible if we can ensure sequencing between subsequent expressions with semicolons ';'. In practice, Clang and GCC may optimize across lines, for example converting:
+Inspiration for this library comes from [Sherry Ignatchenko's talk](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf) on floating point reproducibility, which observed that C++ can be made practically reproducible if we can ensure sequencing between subsequent expressions with semicolons ';'. In practice, Clang and GCC may optimize across lines, for example converting:
 
 ```
 float foo = a * b;
@@ -116,17 +137,16 @@ float bar = foo + c;
 This may compile into something equivalent to
 `float bar = fma(a, b, c);`
 
-Compilers do this because it produces a more precise result with less rounding error. However, compilers are imperfect and can't apply this optimization everywhere on all platforms, which leads to non-reproducibility.
+Compilers do this because it produces a result faster with less rounding error. Compilers are imperfect though and don't apply this optimization consistently. The same code built in different translation units, built by different compilers, or even built by the same compiler for another platform may produce a different result for the same inputs.
 
 **rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions. The assembly block acts as a no-op forcing the compiler to spill intermediate results into registers, which happens anyway. The presence of the assembly block and the "side-effect" of writing into a register prevents the optimizer from applying optimizations that would affect reproducibility.
 
-MSVC does not support inline assembly blocks and instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in the default case, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types if `/fp:fast` is enabled.
+MSVC does not support inline assembly blocks and instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types within translation units where `/fp:fast` is enabled. Code that does not mix non-reproducible types does not have an additional overhead.
 
-## Platforms
-### Tested Platforms
+## Supported Platforms
 | Support | Windows x64 | MacOS M1 | Linux x64 |
 |---------|---------|-------|-------|
-| Clang 14/15/16 | Untested | :heavy_check_mark: | :heavy_check_mark: |
+| Clang 14/15/16/18 | Untested | :heavy_check_mark: | :heavy_check_mark: |
 | GCC 11   | Untested | Untested | :heavy_check_mark: |
 | MSVC     | :heavy_check_mark: | Untested | Untested |
 
@@ -178,10 +198,14 @@ convert every operation into a function call. Suggestions for improvement are we
 - Clang produces unnecessary moves on x64.
 - Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), there may be issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
 
-Unidentified reproducibility issues are considered bugs, please report them. The following reproducibility issues are known to occur:
+The following list is all known reproducibility issues:
 
 - LLVM does not propagate NaN payloads according to IEEE754.
-- Clang targeting PPC64el with `-ffast-math` generates non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
+    - This is documented, intended behavior by the LLVM project
+- Clang targeting PPC64el with `-ffast-math` generates a non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
+    - **rfloat** disables `std::sqrt` overloads for PPC64el systems by default.
+
+Unidentified reproducibility issues are considered bugs, please report them.
 
 ## Benchmarks
 
@@ -231,7 +255,7 @@ All numbers in GFLOPS, rounded to 2 decimal digits.
 
 The Clang slowdown results from Clang emitting unnecessary memory stores after every floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
 
-## Reproducibility
+## Reproducibility Guarantees
 
 Floating point reproducibility is extremely challenging to guarantee because it requires many different layers to work together.
 
@@ -267,7 +291,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Credit
 
-This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3375r0.html) proposal and Sherry Ignatchenko's talk on[`Cross-Platform Floating-Point Determinism Out of the Box`](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf).
+This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3375r0.html) proposal and Sherry Ignatchenko's talk on [`Cross-Platform Floating-Point Determinism Out of the Box`](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf).
 
 ## Resources
 
