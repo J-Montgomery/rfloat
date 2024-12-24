@@ -7,13 +7,13 @@
 
 /* Clang on PPC64 platforms introduces a rounding error when built with
  * -ffast-math. As -ffast-math explicitly breaks the IEEE standard, this isn't
- * strictly a bug in the compiler, this is the only platform/compiler
+ * strictly a bug in the compiler. However this is the only platform/compiler
  * combination I know of that actually deviates from the standard like this. The
  * bug is extremely difficult to reproduce in practice though. A single sqrt()
- * does not actually trigger the issue, only a sequence of sqrt() calls like the
+ * is not enough to trigger the issue, only a sequence of sqrt() calls like the
  * below test case does. The result is a single digit off in the resulting
- * float, likely due to round-off error from the generated code changing
- * slightly when the function size hits some threshold that prevents inlining.
+ * float, likely due to different rounding errors in the sqrt() implementation
+ * when the function size hits some threshold that prevents inlining.
  * When this happens the sqrt() call will return 15515.856114955872 instead of
  * 15515.856114955874. Tested on Clang++ v14.0.0
  */
