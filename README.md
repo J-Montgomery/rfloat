@@ -191,14 +191,14 @@ The following platforms are all continuously tested via QEMU.
 
 ## Issues
 
-Performance issues and uncertainty:
-
 - MSVC with `/fp:fast` results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang produces unnecessary moves on x64.
 - Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), there may be issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
+- Test code uses infinities and NaNs even under -ffast-math, causing potential undefined behavior and generating diagnostic warnings on Clang-18+.
+    - **rfloat is explicitly intended to work even in this scenario. The compiler diagnostics are simply unhelpful here.
 
-The following list is all known reproducibility issues:
+The following list is known issues that affect reproducibility:
 
 - LLVM does not propagate NaN payloads according to IEEE754.
     - This is documented, intended behavior by the LLVM project
