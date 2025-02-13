@@ -33,7 +33,7 @@ jobs:
         OPT_LEVELS=(-O0 -O1 -O2 -O3 -Os -Ofast)
         BASE_OPT=${OPT_LEVELS[$RANDOM % ${#OPT_LEVELS[@]}]}
 
-        TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM)
+        TEST_DEFINES=(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -DRSTD_NONDETERMINISM -DENABLE_BUILTIN_BARRIERS)
         BASE_DEFINES=${TEST_DEFINES[$RANDOM % ${#TEST_DEFINES[@]}]}
 
         FLAGS=(
@@ -117,19 +117,3 @@ jobs:
         echo ""
         echo "Configure result: $CONFIGURE_RESULT"
         echo "Build result: $BUILD_RESULT"
-
-        # Store results in a file for potential analysis
-        {
-          echo "timestamp: $(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          echo "flags: $COMPILER_FLAGS"
-          echo "configure_result: $CONFIGURE_RESULT"
-          echo "build_result: $BUILD_RESULT"
-          echo "---"
-        } >> "${{ github.workspace }}/compiler_test_results.yml"
-
-    - name: Upload Test Results
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: compiler-test-results
-        path: ${{ github.workspace }}/compiler_test_results.yml
