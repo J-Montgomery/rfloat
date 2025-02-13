@@ -139,9 +139,12 @@ This may compile into something equivalent to
 
 Compilers do this because it produces a result faster with less rounding error. Compilers are imperfect though and don't apply this optimization consistently. The same code built in different translation units, built by different compilers, or even built by the same compiler for another platform may produce a different result for the same inputs.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions by inserting an empty assembly block between subsequent expressions. The assembly block acts as a no-op forcing the compiler to spill intermediate results into registers, which happens anyway. The presence of the assembly block and the "side-effect" of writing into a register prevents the optimizer from applying optimizations that would affect reproducibility.
+**rfloat** prevents Clang and GCC from optimizing between expressions with two different strategies. The default strategy inserts an empty assembly block between subsequent expressions. The assembly block acts as a no-op forcing the compiler to spill intermediate results into registers, which happens anyway. The presence of the assembly block and the "side-effect" of writing into a register prevents the optimizer from applying optimizations that would affect reproducibility.
 
-MSVC does not support inline assembly blocks and instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types within translation units where `/fp:fast` is enabled. Code that does not mix non-reproducible types does not have an additional overhead.
+The second strategy sets an optimization barrier using compiler directives and can be enabled by defining the `ENABLE_BUILTIN_BARRIERS` macro at build time. This may slightly improve application performance and compile times, especially on Clang/LLVM. However, Clang/LLVM has open reproducibilty
+issues with this strategy when using certain combinations of compiler flags ([Issue #91674](https://github.com/llvm/llvm-project/issues/91674)) and is not enabled by default.
+
+MSVC does not support inline assembly blocks or optimization barriers. Instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types within translation units where `/fp:fast` is enabled. Code that does not mix non-reproducible types does not incur an additional overhead.
 
 ## Supported Platforms
 | Support | Windows x64 | MacOS M1 | Linux x64 |

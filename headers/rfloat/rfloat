@@ -19,6 +19,7 @@
 // the compiler to have computed the value of param by the
 // time the macro ends.
 #if defined(__aarch64__) && (defined(__clang__) || defined(__GNUG__))
+#if !defined(ENABLE_BUILTIN_BARRIERS)
 // For AArch64, we can use the "w" register constraint to specify
 // that the parameter must exist in a floating point or SVE register
 // somewhere. The compilers are smart enough to do the right thing
@@ -26,7 +27,14 @@
 // For ARM32, we would need to use either the "t" or "w" constraint depending
 // on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
+#elif defined(__clang)
+#define OPT_BARRIER(param) __arithmetic_fence(param)
+#elif defined(__GNUG__)
+#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
+#endif
 #elif defined(__clang__)
+
+#if !defined(ENABLE_BUILTIN_BARRIERS)
 // We don't have a similarly useful target-specific constraint for x86_64,
 // so we fall back to the generic "X" constraint.
 // Clang requires us to specify the +X constraint on the output to do what
@@ -39,7 +47,14 @@
 // Mailing lists also suggest that "+X" and "=X" are identical, which
 // is not true in practice.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param)::)
+#else
+// Clang's __arithmetic_fence does not prevent
+// contraction in all circumstances. Mileage may vary.
+// https://github.com/llvm/llvm-project/issues/91674
+#define OPT_BARRIER(param) __arithmetic_fence(param)
+#endif
 #elif defined(__GNUG__)
+#if !defined(ENABLE_BUILTIN_BARRIERS)
 // GCC has several issues related to the "X" constraint on output
 // variables:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
@@ -49,6 +64,11 @@
 // To work around this, we specify the "X" constraint on the input,
 // which seems to work in practice.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
+#else
+// This should be a more reliable way to achieve the same goal
+// on GCC.
+#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
+#endif
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast for the code that would unsafe if it's enabled
