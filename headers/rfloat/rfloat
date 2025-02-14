@@ -297,21 +297,21 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator-(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, -);
+        T result = value - rhs.value;
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator*(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, *);
+        T result = value * rhs.value;
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         return ReproducibleWrapper(result);
     }
 
@@ -327,7 +327,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator-=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, -);
+        T result = value - rhs.value;
         value = result;
         return *this;
     }
@@ -335,7 +335,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator*=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, *);
+        T result = value * rhs.value;
         value = result;
         return *this;
     }
@@ -343,7 +343,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator/=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         value = result;
         return *this;
     }
