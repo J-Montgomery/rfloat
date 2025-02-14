@@ -19,7 +19,7 @@
 // the compiler to have computed the value of param by the
 // time the macro ends.
 #if defined(__aarch64__) && (defined(__clang__) || defined(__GNUG__))
-#if !defined(ENABLE_BUILTIN_BARRIERS)
+#if defined(BARRIER_IMPL_ASM)
 // For AArch64, we can use the "w" register constraint to specify
 // that the parameter must exist in a floating point or SVE register
 // somewhere. The compilers are smart enough to do the right thing
@@ -27,34 +27,53 @@
 // For ARM32, we would need to use either the "t" or "w" constraint depending
 // on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
-#elif defined(__clang)
+#elif defined(__clang__)
 #define OPT_BARRIER(param) __arithmetic_fence(param)
 #elif defined(__GNUG__)
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__)
+#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
+// Clang provides an __arithmetic_fence intrisinc
+// that's intended to do exactly what the OPT_BARRIER macro needs.
+// It usually works, and the Clang frontend will generate separate
+// mul / add IR for the backend along with the appropriate
+// tags indicating that contraction is not allowed.
+// Certain Clang backends (e.g. x86) will ignore the tags and
+// generate FMA instructions, breaking reproducibility.
+// LLVM also provides pragmas that you'd hope could be used
+// to disable contraction, it turns that -ffp-contract=fast
+// will override source pragmas and perform contraction anyway.
 
-#if !defined(ENABLE_BUILTIN_BARRIERS)
-// We don't have a similarly useful target-specific constraint for x86_64,
-// so we fall back to the generic "X" constraint.
+// As a result, we have to fall back to this inline assembly
+// to prevent contraction. We don't have a useful target-specific constraint
+// for x86_64, so we fall back to the generic "X" constraint.
 // Clang requires us to specify the +X constraint on the output to do what
 // we want, meaning the parameter must exist *somewhere* by the time the
 // barrier completes. In practice, this seems to generate an unnecessary
 // store per operation.
 // Mailing lists suggest this should be an "rm" constraint instead,
 // which has the side effect of generating an even more expensive
-// mov to a general purpose register instead.
-// Mailing lists also suggest that "+X" and "=X" are identical, which
-// is not true in practice.
+// move to a general purpose register instead.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param)::)
 #else
-// Clang's __arithmetic_fence does not prevent
-// contraction in all circumstances. Mileage may vary.
+// Contraction might still be done by the backend even if -ffast-math
+// isn't enabled. This is a known Clang bug:
 // https://github.com/llvm/llvm-project/issues/91674
-#define OPT_BARRIER(param) __arithmetic_fence(param)
+// However, arithmetic fence optimizes better than the inline ASM alternative.
+// If -ffast-math isn't enabled, we can use the fence to do the actual work and
+// a friendlier assembly constraint that won't introduce a data dependency for
+// the CPU.
+
+// This has the side effect of generating a whole lot of extra stuff for the
+// backend to deal with, inflating compile times. Unfortunately, it's the only
+// way I've found to avoid more serious performance hits in some situations.
+#define OPT_BARRIER(param)                                                     \
+    __arithmetic_fence(param);                                                 \
+    __asm__("" ::"X"(param) :)
 #endif
 #elif defined(__GNUG__)
-#if !defined(ENABLE_BUILTIN_BARRIERS)
+#if defined(BARRIER_ASM)
 // GCC has several issues related to the "X" constraint on output
 // variables:
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
@@ -65,8 +84,7 @@
 // which seems to work in practice.
 #define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
 #else
-// This should be a more reliable way to achieve the same goal
-// on GCC.
+// This is a much nicer way to express ourselves to the compiler
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(_MSC_VER)
@@ -144,6 +162,7 @@ template <RoundingMode R> void SetRoundingMode() {
 #pragma float_control(precise, on, push)
 #endif
 namespace rstd {
+
 template <typename T, rmath::RoundingMode R = rmath::RoundingMode::ToEven>
 class ReproducibleWrapper {
 #if ENABLE_STDFLOAT
@@ -280,21 +299,21 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator-(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, -);
+        T result = value - rhs.value;
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator*(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, *);
+        T result = value * rhs.value;
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         return ReproducibleWrapper(result);
     }
 
@@ -310,7 +329,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator-=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, -);
+        T result = value - rhs.value;
         value = result;
         return *this;
     }
@@ -318,7 +337,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator*=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, *);
+        T result = value * rhs.value;
         value = result;
         return *this;
     }
@@ -326,7 +345,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator/=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         value = result;
         return *this;
     }
@@ -513,7 +532,7 @@ ReproducibleWrapper<T, R> rint(const ReproducibleWrapper<T, R> &x) {
  * the last bit incorrectly in very specific cases. A minimal reproduction
  * is in the ppc64el.SqrtRoundingBug test.
  */
-#if (!defined(__clang__) && !defined(__powerpc64__)) ||                        \
+#if !(defined(__clang__) && defined(__powerpc64__)) ||                         \
     defined(RSTD_NONDETERMINISM)
 template <typename T, rmath::RoundingMode R>
 FEATURE_CXX23(constexpr)

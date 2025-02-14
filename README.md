@@ -139,12 +139,15 @@ This may compile into something equivalent to
 
 Compilers do this because it produces a result faster with less rounding error. Compilers are imperfect though and don't apply this optimization consistently. The same code built in different translation units, built by different compilers, or even built by the same compiler for another platform may produce a different result for the same inputs.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions with two different strategies. The default strategy inserts an empty assembly block between subsequent expressions. The assembly block acts as a no-op forcing the compiler to spill intermediate results into registers, which happens anyway. The presence of the assembly block and the "side-effect" of writing into a register prevents the optimizer from applying optimizations that would affect reproducibility.
+**rfloat** prevents Clang and GCC from optimizing between expressions with two different strategies. The default strategy inserts a compiler intrinsic between potentially problematic expressions. This prevents some codegen options that might harm reproducibility like contraction without additional side effects. This method has negligible overhead at both compile time and runtime.
 
-The second strategy sets an optimization barrier using compiler directives and can be enabled by defining the `ENABLE_BUILTIN_BARRIERS` macro at build time. This may slightly improve application performance and compile times, especially on Clang/LLVM. However, Clang/LLVM has open reproducibilty
-issues with this strategy when using certain combinations of compiler flags ([Issue #91674](https://github.com/llvm/llvm-project/issues/91674)) and is not enabled by default.
+The second strategy uses inline assembly to prevent the compiler from reordering or fusing operations that could lead to reproducibility issues by forcing the compiler to spill intermediate results into registers. This is a no-op on GCC and comes at the cost of an additional memory store on Clang. This approach may also lead to increased compile times. This strategy can be manually enabled by defining the `BARRIER_IMPL_ASM` at compile time.
+
+GCC provides a functioning barrier intrinsic (`__builtin_assoc_barrier`) that is used by default.
 
 MSVC does not support inline assembly blocks or optimization barriers. Instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types within translation units where `/fp:fast` is enabled. Code that does not mix non-reproducible types does not incur an additional overhead.
+
+`rfloat` on Clang resorts to a combination of barrier intrinsics and inline assembly to balance reproducibility and performance. The barrier intrinsic available with Clang (`__arithmetic_fence`) is broken on [x86 and x64 platforms](https://github.com/llvm/llvm-project/issues/91674), but can be combined with inline assembly approach to approach full performance. If `-ffast-math` is set, `rfloat` has to fallback to the full costs of the inline assembly approach discussed above to ensure reproducibility.
 
 ## Supported Platforms
 | Support | Windows x64 | MacOS M1 | Linux x64 |
@@ -196,8 +199,9 @@ The following platforms are all continuously tested via QEMU.
 
 - MSVC with `/fp:fast` results in additional overhead because the compiler is forced to
 convert every operation into a function call. Suggestions for improvement are welcome.
-- Clang produces unnecessary moves on x64.
-- Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), there may be issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
+- Clang incurs unnecessary overhead on x64.
+    - This overhead results from the need to work around Clang's broken `__arithmetic_fence()` intrinsic. The compiler frontend generates the correct IR for this intrinsic and tells the backend that contraction is disabled, the backend will occasionally ignore this information and generate contractions regardless. One additional implication of this bug is that the Clang `-fprotect-parens` flag is broken in the same situations as it shares the same implementation internally. Source level pragmas cannot be used to work around this problem either, as Clang ignores source code directives for floating point accuracy that conflict with build flags. Additionally, while the `__FAST_MATH__` macro is defined when `-ffast-math` is set, there is no compiler macro to detect `-ffp-contract=fast` and generate a build error. Since there's no reliable way to detect dangerous build flags, `rfloat` is forced to implement operations in ways that incur minor overhead on Clang. The overhead is increased for code used in translation units that set `-ffast-math`.
+- Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), code that sets `BARRIER_IMPL_ASM` may have issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
 - Test code uses infinities and NaNs even under -ffast-math, causing potential undefined behavior and generating diagnostic warnings on Clang-18+.
     - **rfloat is explicitly intended to work even in this scenario. The compiler diagnostics are simply unhelpful here.
 
@@ -251,12 +255,12 @@ All numbers in GFLOPS, rounded to 2 decimal digits.
 
 | Size | double | rdouble | Slowdown relative to double |
 |----------|--------|---------|----|
-| 32k | 7.69  | 4.25 | 44.77% |
-| 64k | 7.71 | 4.25 | 44.82% |
-| 128k | 7.68 | 4.24| 44.81% |
-| 256k | 7.70 | 4.24 | 44.91% |
+| 32k | 7.69  | 6.29 | 22.25% |
+| 64k | 7.71 | 6.30 | 22.38% |
+| 128k | 7.68 | 6.30| 21.90% |
+| 256k | 7.70 | 6.18 | 24.59% |
 
-The Clang slowdown results from Clang emitting unnecessary memory stores after every floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
+The Clang slowdown results from Clang emitting unnecessary memory stores after some floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
 
 ## Reproducibility Guarantees
 
