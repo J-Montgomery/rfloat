@@ -41,7 +41,7 @@
         "description": "Enables reasonable optimizations for benchmark testing on unixes",
         "cacheVariables": {
             "CMAKE_BUILD_TYPE": "Debug",
-            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native;-DRSTD_NONDETERMINISM"
+            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native;-DRSTD_NONDETERMINISM;-DRFLOAT_BENCHMARKS;-DENABLE_BUILTIN_BARRIERS;-ffp-contract=fast;-fno-signed-zeros"
         },
         "environment": {
             "CTEST_OUTPUT_ON_FAILURE": "1"

@@ -251,12 +251,12 @@ All numbers in GFLOPS, rounded to 2 decimal digits.
 
 | Size | double | rdouble | Slowdown relative to double |
 |----------|--------|---------|----|
-| 32k | 7.69  | 4.25 | 44.77% |
-| 64k | 7.71 | 4.25 | 44.82% |
-| 128k | 7.68 | 4.24| 44.81% |
-| 256k | 7.70 | 4.24 | 44.91% |
+| 32k | 7.69  | 6.29 | 22.25% |
+| 64k | 7.71 | 6.30 | 22.38% |
+| 128k | 7.68 | 6.30| 21.90% |
+| 256k | 7.70 | 6.18 | 24.59% |
 
-The Clang slowdown results from Clang emitting unnecessary memory stores after every floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
+The Clang slowdown results from Clang emitting unnecessary memory stores after some floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
 
 ## Reproducibility Guarantees
 
