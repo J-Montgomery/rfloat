@@ -19,7 +19,7 @@
 // the compiler to have computed the value of param by the
 // time the macro ends.
 #if defined(__aarch64__) && (defined(__clang__) || defined(__GNUG__))
-#if defined(BARRIER_IMPL_ASM) || defined(__clang__)
+#if defined(BARRIER_IMPL_ASM)
 // For AArch64, we can use the "w" register constraint to specify
 // that the parameter must exist in a floating point or SVE register
 // somewhere. The compilers are smart enough to do the right thing
@@ -27,6 +27,8 @@
 // For ARM32, we would need to use either the "t" or "w" constraint depending
 // on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
+#elif defined(__clang__)
+#define OPT_BARRIER(param) __arithmetic_fence(param)
 #elif defined(__GNUG__)
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
