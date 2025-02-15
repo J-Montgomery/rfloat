@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         cpp_compiler: [g++, clang++]
-        arch: [arm, aarch64, ppc64el, s390x, mips64el]
+        arch: [arm, aarch64, ppc64el, s390x, mips64el, riscv64, sh4, sparc64]
         include:
           - arch: arm
             qemu: qemu-arm
@@ -47,6 +47,14 @@ jobs:
           - arch: riscv64
             qemu: qemu-riscv64
             triple: riscv64-linux-gnu
+          - arch: sh4
+            qemu: qemu-sh4
+            triple: sh4-linux-gnu
+            expected_failures: ''
+          - arch: sparc64
+            qemu: qemu-sparc64
+            triple: sparc64-linux-gnu
+            expected_failures: ''
 
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
