@@ -2,6 +2,7 @@
 
 #include "gen_repro_tests.hh"
 #include "rcmath_tests.hh"
+#include <rcmath>
 #include <rfloat>
 
 constexpr std::size_t steps = 1000;

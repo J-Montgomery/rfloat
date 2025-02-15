@@ -1,5 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
+#include <rcmath>
 #include <rfloat>
 
 /* This file holds minimal reproducibility tests for bugs discovered in
