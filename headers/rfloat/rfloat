@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cmath>
 #include <fenv.h>
-#include <functional>
 #include <istream>
 #include <limits>
 #include <ostream>
