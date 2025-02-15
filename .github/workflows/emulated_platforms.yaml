@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         cpp_compiler: [g++, clang++]
-        arch: [arm, aarch64, ppc64el, s390x, mips64el, riscv64, loongarch, xtensa, hexagon, sparc64]
+        arch: [arm, aarch64, ppc64el, s390x, mips64el, riscv64, sh4, sparc64]
         include:
           - arch: arm
             qemu: qemu-arm
@@ -47,17 +47,9 @@ jobs:
           - arch: riscv64
             qemu: qemu-riscv64
             triple: riscv64-linux-gnu
-          - arch: loongarch
-            qemu: qemu-loongarch64
-            triple: loongarch64-linux-gnu
-            expected_failures: ''
-          - arch: xtensa
-            qemu: qemu-xtensa
-            triple: xtensa-linux-gnu
-            expected_failures: ''
-          - arch: hexagon
-            qemu: qemu-hexagon
-            triple: hexagon-linux-gnu
+          - arch: sh4
+            qemu: qemu-sh4
+            triple: sh4-linux-gnu
             expected_failures: ''
           - arch: sparc64
             qemu: qemu-sparc64
