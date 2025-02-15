@@ -35,7 +35,7 @@ jobs:
             arch: ppc64el
             qemu: qemu-ppc64le
             triple: powerpc64le-linux-gnu
-            expected_failures: ppc64el.SqrtRoundingBug,BasicTest.RandomInputsSqrt
+            expected_failures: ''
           - arch: s390x
             qemu: qemu-s390x
             triple: s390x-linux-gnu

@@ -33,7 +33,9 @@
 
 1. Include the `<rfloat>` header.
 
-3. Replace usages of `float` & `double` with `rfloat` & `rdouble`.
+2. Replace usages of `float` & `double` with `rfloat` & `rdouble`.
+
+3. **Optional** Replace `<cmath>` includes with `<rcmath>`.
 
 4. **Optional** Replace `cmath` functions with their `rstd` equivalents.
 
@@ -209,8 +211,8 @@ The following list is known issues that affect reproducibility:
 
 - LLVM does not propagate NaN payloads according to IEEE754.
     - This is documented, intended behavior by the LLVM project
-- Clang targeting PPC64el with `-ffast-math` generates a non-IEEE754 compliant `sqrt()` implementation. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
-    - **rfloat** disables `std::sqrt` overloads for PPC64el systems by default.
+- Clang targeting PPC64el with `-ffast-math` generates a non-IEEE754 compliant `sqrt()` when inlined into unrolled loops. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
+    - **rfloat** disables inlining for `std::sqrt` overloads for ppc64.
 
 Unidentified reproducibility issues are considered bugs, please report them.
 

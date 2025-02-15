@@ -63,6 +63,7 @@ C**********************************************************************
 /* the following is optional depending on the timing function used */
 #include <time.h>
 
+#include <rcmath>
 #include <rfloat>
 
 #if defined(FP_TYPE_RDOUBLE)

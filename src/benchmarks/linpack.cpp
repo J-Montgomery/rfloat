@@ -33,6 +33,7 @@
 #include <numeric>
 #include <time.h>
 
+#include <rcmath>
 #include <rfloat>
 
 #ifndef SP

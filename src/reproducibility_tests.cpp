@@ -1,6 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
 #include "rcmath_tests.hh"
+#include <rcmath>
 #include <rfloat>
 
 #include "reproducibility_tests.hh"
