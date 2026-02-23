@@ -154,8 +154,8 @@ template <RoundingMode R> void SetRoundingMode() {
 
 // MSVC doesn't have a way to define SAFE_BINOP(),
 // but the code is safe under /fp:precise.
-// In order to support /fp:fast, we disable it at
-// the most restrictive scope we can
+// In order to support /fp:fast & /fp:contract, we
+// disable it at the most restrictive scope we can
 #ifdef MSVC_CONTRACT
 #pragma float_control(precise, on, push)
 #endif
