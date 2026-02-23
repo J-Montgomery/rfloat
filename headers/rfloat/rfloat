@@ -87,15 +87,15 @@
 #endif
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
-// /fp:fast for the code that would unsafe if it's enabled
+// /fp:fast & /fp:contract for the code that would unsafe if it's enabled
 // on the translation unit
 #define OPT_BARRIER(param)
 
-#if defined(_M_FP_FAST)
-#define MSVC_FAST
+#if defined(_M_FP_CONTRACT)
+#define MSVC_CONTRACT
 #else
-#undef MSVC_FAST
-#endif /* _M_FP_FAST */
+#undef MSVC_CONTRACT
+#endif /* _M_FP_CONTRACT */
 
 #else
 // There's no standard way to communicate what we want to the compiler
@@ -156,7 +156,7 @@ template <RoundingMode R> void SetRoundingMode() {
 // but the code is safe under /fp:precise.
 // In order to support /fp:fast, we disable it at
 // the most restrictive scope we can
-#ifdef MSVC_FAST
+#ifdef MSVC_CONTRACT
 #pragma float_control(precise, on, push)
 #endif
 namespace rstd {
@@ -445,9 +445,9 @@ struct std::hash<rstd::ReproducibleWrapper<T>> : public std::hash<T> {
     }
 };
 
-#ifdef MSVC_FAST
+#ifdef MSVC_CONTRACT
 #pragma float_control(pop)
-#undef MSVC_FAST
+#undef MSVC_CONTRACT
 #endif
 
 // It'd be nice to use C++20 template aliases here,
