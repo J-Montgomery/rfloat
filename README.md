@@ -234,8 +234,7 @@ No performance differential observed on `-O2` at 1000000 iterations.
 | Clang 16 | 5882.4 MWIPS | 5882.4 MWIPS |
 | GCC 11   | 5882.4 MWIPS | 5882.4 MWIPS |
 
-6% performance differential observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations. Note that the performance of **rfloat** has not decreased, but additional optimizations
-have benefited the baseline implementation, at the cost of non-reproducible outputs.
+6% performance differential observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations. Note that the performance of **rfloat** has not decreased, but additional optimizations have benefited the baseline implementation, at the cost of non-reproducible outputs.
 
 | Compiler | double | rdouble |
 |----------|--------|---------|
@@ -305,5 +304,4 @@ This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/
 ## Resources
 
 [Agner Fog on NaN Payload Propagation](https://grouper.ieee.org/groups/msc/ANSI_IEEE-Std-754-2019/background/nan-propagation.pdf)
-
 
