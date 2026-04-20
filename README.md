@@ -5,7 +5,7 @@
 ## Table of Contents
 - [Features](#features)
 - [Quick Start](#quick-start)
-- [Why is Reproduccibility Important](#why-is-reproducibility-important)
+- [Why is Reproducibility Important](#why-is-reproducibility-important)
 - [Examples](#examples)
 - [Design](#design)
 - [Supported Platforms](#supported-platforms)
@@ -16,7 +16,7 @@
 - [Reproducibility Guarantees](#reproducibility-guarantees)
 - [License](#license)
 - [Credit](#credit)
-- [Additional Resources](#resources)
+- [Additional Resources](#additional-resources)
 
 ## Features
 
@@ -33,7 +33,7 @@
 
 1. Include the `<rfloat>` header.
 
-2. Replace usages of `float` & `double` with `rfloat` & `rdouble`.
+2. Replace instances of `float` & `double` with `rfloat` & `rdouble`.
 
 3. **Optional** Replace `<cmath>` includes with `<rcmath>`.
 
@@ -50,25 +50,26 @@ IEEE-754 floating point arithmetic is reproducible under certain conditions. How
 - non-compliant implementations
 - ambiguous standard semantics
 
-Floating point non-reproducibility creates problems for many applications, especially games, robotics, and high-assurance code. Other libraries like [dmath](https://github.com/sixitbb/sixit-dmath) implement reproducible floating point through a variety of strategies, each of which have their own significant tradeoffs and performance implications.
+Floating point non-reproducibility creates problems for many applications, especially games, robotics, and high-assurance code. Other libraries like [dmath](https://github.com/sixitbb/sixit-dmath) implement reproducible floating point through a variety of strategies, each of which has its own significant tradeoffs.
 
-**rfloat** uses a different approach focused on preventing the compiler from performing dangerous optimizations while still allowing it to generate the same instructions it otherwise would. This isn't perfect, but it's an excellent tradeoff that provides reproducibility in practice for almost all applications.
+**rfloat** uses a different approach focused on preventing the compiler from performing dangerous optimizations while still allowing it to generate the same instructions it otherwise would. This provides practical reproducibility to applications without code
+changes.
 
 > [!NOTE]
-> It's impossible for any hard float library to guarantee complete reproducibility. Users that need such guarantees should consider soft float alternatives like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/). See the section on [Reproducibility Guarantees](#reproducibility-guarantees) on why this is difficult.
+> It's impossible for any hard float library, rfloat included, to guarantee complete reproducibility. Users that need such guarantees should consider soft float alternatives like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/). See the section on [Reproducibility Guarantees](#reproducibility-guarantees) on why this is difficult. Limitations with the rfloat approach are documented below in [Issues](#issues) and [Limitations](#limitations).
 
 ## Examples
 
-```
+```cpp
 #include <rfloat>
 rfloat sum(rfloat a, rfloat b) {
     return a + b;
 }
 ```
 
-You can mix regular floating point types and reproducible types. The result will be a reproducible type.
+You can mix regular floating point types and reproducible types. The result will be a reproducible type. The `rfloat` and `rdouble` types are provided in the global namespace for ease of conversion.
 
-```
+```cpp
 float a;
 rfloat b;
 
@@ -79,7 +80,7 @@ static_assert(std::is_same<decltype(c), rfloat>::value);
 Reproducible types prohibit usage with types of differing sizes, as well as types
 with different rounding modes if the results would be ambiguous.
 
-```
+```cpp
 rfloat a;
 rdouble b;
 
@@ -88,7 +89,7 @@ rfloat c = a + b; // compile error
 
 Reproducible types also allow unwrapping values to interact with existing code.
 
-```
+```cpp
 rfloat a;
 float b = a.underlying_value();
 
@@ -96,8 +97,8 @@ rfloat c;
 rdouble d = c.fp64(); // Casts are allowed as long as they don't lose precision
 
 rdouble e;
-rfloat f = e.fp32(); // Compile error to prevent accidental narrowing
-float f = e.underlying_value(); // Escape hatches exist
+rfloat x = e.fp32(); // Compile error to prevent accidental narrowing
+float y = e.underlying_value(); // Escape hatch returning the raw floating point type
 ```
 
 Expressions that compile with reproducible types should return the same results under any combination of compiler flags. There should be little to no performance cost beyond the operations themselves.
@@ -119,7 +120,7 @@ rdouble loan_cost(rdouble principal, rdouble interest_rate) {
 }
 ```
 
-Overloads are only as reproducible as the underlying standard library implementation. Users who need guaranteed reproducibility should evaluate dedicated soft float implementations like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/), or other libraries with custom implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm).
+Overloads are only as reproducible as the underlying standard library implementation. Users who need guaranteed reproducibility should evaluate dedicated soft float implementations like [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) and [GNU MPFR](https://www.mpfr.org/), or other libraries with custom implementations like [dmath](https://github.com/sixitbb/sixit-dmath), [crlibm](https://github.com/taschini/crlibm), and [rlibm](https://github.com/rutgers-apl/rlibm). LLVM's standard library functions are reproducible for most common functions, and plans to increase reproducibility over time. The current status is available in the [LLVM math.h Implementation Status](https://libc.llvm.org/headers/math/index.html#basic-operations).
 
 > [!NOTE]
 > If you want to evaluate standard library reproducibility on your platform, the reproducibility tests can check them by defining `RSTD_DETERMINISM` and `ENABLE_NONDETERMINISTIC_TESTS` when
@@ -136,27 +137,42 @@ float foo = a * b;
 float bar = foo + c;
 ```
 
-This may compile into something equivalent to
+Compilers will sometimes optimize this into
 `float bar = fma(a, b, c);`
 
-Compilers do this because it produces a result faster with less rounding error. Compilers are imperfect though and don't apply this optimization consistently. The same code built in different translation units, built by different compilers, or even built by the same compiler for another platform may produce a different result for the same inputs.
+This implementation is faster and has less rounding error. Unfortunately, compilers don't apply this transformation consistently in all circumstances. That means the same code built in different translation units, built by different compilers, or even built by the same compiler for another platform may produce a different result for the same inputs.
 
-**rfloat** prevents Clang and GCC from optimizing between expressions with two different strategies. The default strategy inserts a compiler intrinsic between potentially problematic expressions. This prevents some codegen options that might harm reproducibility like contraction without additional side effects. This method has negligible overhead at both compile time and runtime.
+**rfloat** prevents compilers automatically applying these kinds of transformations, while still allowing programmers to manually specify them. Since these transformations  usually don't impact performance significantly, the resulting program becomes reproducible for negligible cost in most cases. The library does this with two strategies:
 
-The second strategy uses inline assembly to prevent the compiler from reordering or fusing operations that could lead to reproducibility issues by forcing the compiler to spill intermediate results into registers. This is a no-op on GCC and comes at the cost of an additional memory store on Clang. This approach may also lead to increased compile times. This strategy can be manually enabled by defining the `BARRIER_IMPL_ASM` at compile time.
+The default strategy inserts a compiler intrinsic between potentially problematic expressions. This prevents some codegen options that might harm reproducibility like fma contraction without additional side effects. This method has negligible overhead at both compile time and runtime.
+
+The second strategy uses inline assembly to prevent the compiler from reordering or fusing operations that could lead to reproducibility issues by forcing the compiler to spill intermediate results into registers. This is a no-op on GCC. On clang, an additional memory store occurs. This approach may also lead to increased compile times. Defining the `BARRIER_IMPL_ASM` at compile time will manually enable it.
 
 GCC provides a functioning barrier intrinsic (`__builtin_assoc_barrier`) that is used by default.
 
-MSVC does not support inline assembly blocks or optimization barriers. Instead, `/fp:fast` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when using reproducible types mixed with non-reproducible types within translation units where `/fp:fast` is enabled. Code that does not mix non-reproducible types does not incur an additional overhead.
+MSVC does not support inline assembly blocks or optimization barriers. Instead, `/fp:contract` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when mixing reproducible types with non-reproducible types inside a single translation unit. Code that does not mix non-reproducible types does not incur additional overhead.
 
-`rfloat` on Clang resorts to a combination of barrier intrinsics and inline assembly to balance reproducibility and performance. The barrier intrinsic available with Clang (`__arithmetic_fence`) is broken on [x86 and x64 platforms](https://github.com/llvm/llvm-project/issues/91674), but can be combined with inline assembly approach to approach full performance. If `-ffast-math` is set, `rfloat` has to fallback to the full costs of the inline assembly approach discussed above to ensure reproducibility.
+**rfloat** on Clang resorts to a combination of barrier intrinsics and inline assembly to balance reproducibility and performance. The barrier intrinsic available with Clang (`__arithmetic_fence`) is broken on [x86 and x64 platforms](https://github.com/llvm/llvm-project/issues/91674), but can be combined with inline assembly approach to approach full performance. If `-ffast-math` is set, **rfloat** has to fallback to the inline assembly strategy discussed above to ensure reproducibility.
+
+> [!NOTE]
+> **rfloat** can prevent some compiler transformations required for autovectorization that cannot be applied universally. This has not been observed to significantly impact performance in practice. 
+
+### Configuration Macros
+
+| Macro name | Default | Purpose |
+|------------|---------|---------|
+| ENABLE_STDFLOAT | Off | Enables `<stdfloat>` support |
+| RSTD_NONDETERMINISM | Off | Enables math functions that are known to be nondeterministic on some platforms |
+| BARRIER_IMPL_ASM | Auto | Uses an inline assembly barrier instead of compiler intrinsics |
 
 ## Supported Platforms
-| Support | Windows x64 | MacOS M1 | Linux x64 |
+
+| Compiler | OS | Architecture | Tested |
 |---------|---------|-------|-------|
-| Clang 14/15/16/18 | Untested | :heavy_check_mark: | :heavy_check_mark: |
-| GCC 11   | Untested | Untested | :heavy_check_mark: |
-| MSVC     | :heavy_check_mark: | Untested | Untested |
+| Clang 14+ | MacOS | AARCH64 | :heavy_check_mark: |
+| Clang 14+ | Linux | x64 | :heavy_check_mark: |
+| GCC 11+ | Linux | x64 | :heavy_check_mark: |
+| MSVC | Windows | x64 | :heavy_check_mark: |
 
 The following platforms are all continuously tested via QEMU.
 
@@ -169,10 +185,10 @@ The following platforms are all continuously tested via QEMU.
 | mips64el | :heavy_check_mark: | :heavy_check_mark: |
 
 > [!NOTE]
-> Platform combinations with an asterisk have [documented issues](#issues)
+> Platform combinations with an asterisk have [workarounds](#issues) to ensure reproducibility by default.
 
 ## Goals
-**rfloat** aims to provide the best tradeoff between performance, reproducibility, and ease of use for most applications.
+**rfloat** aims to demonstrate that complete reproducibility is achievable today without severe performance degradations or code modifications.
 
 - Zero unnecessary overhead
 - Easy to integrate with existing code
@@ -199,22 +215,25 @@ The following platforms are all continuously tested via QEMU.
 
 ## Issues
 
-- MSVC with `/fp:fast` results in additional overhead because the compiler is forced to
-convert every operation into a function call. Suggestions for improvement are welcome.
+- MSVC with `/fp:contract` results in additional overhead when reproducible and non-reproducible types are mixed inside a single translation unit because the compiler is forced to convert every operation into a function call. Suggestions for improvement are welcome.
 - Clang incurs unnecessary overhead on x64.
-    - This overhead results from the need to work around Clang's broken `__arithmetic_fence()` intrinsic. The compiler frontend generates the correct IR for this intrinsic and tells the backend that contraction is disabled, the backend will occasionally ignore this information and generate contractions regardless. One additional implication of this bug is that the Clang `-fprotect-parens` flag is broken in the same situations as it shares the same implementation internally. Source level pragmas cannot be used to work around this problem either, as Clang ignores source code directives for floating point accuracy that conflict with build flags. Additionally, while the `__FAST_MATH__` macro is defined when `-ffast-math` is set, there is no compiler macro to detect `-ffp-contract=fast` and generate a build error. Since there's no reliable way to detect dangerous build flags, `rfloat` is forced to implement operations in ways that incur minor overhead on Clang. The overhead is increased for code used in translation units that set `-ffast-math`.
+    - This overhead results from the need to work around Clang's broken `__arithmetic_fence()` intrinsic. The compiler frontend generates the correct IR for this intrinsic and tells the backend that contraction is disabled. However, the
+    backend will sometimes ignore this information and generate contractions anyway. The Clang `-fprotect-parens` flag is broken in the same situations because of a shared implementation. Source level pragmas cannot be used to work around this problem either, as Clang ignores source code directives for floating point accuracy that conflict with build flags. Additionally, while the `__FAST_MATH__` macro is defined when `-ffast-math` is set, there is no compiler macro to detect `-ffp-contract=fast` and generate a build error. Since there's no reliable way to detect dangerous build flags, **rfloat** is forced to implement operations in ways that incur minor overhead on Clang. The overhead is increased for code used in translation units that set `-ffast-math`.
 - Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), code that sets `BARRIER_IMPL_ASM` may have issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
 - Test code uses infinities and NaNs even under -ffast-math, causing potential undefined behavior and generating diagnostic warnings on Clang-18+.
-    - **rfloat is explicitly intended to work even in this scenario. The compiler diagnostics are simply unhelpful here.
+    - **rfloat** works correctly even in this scenario despite the warnings. These warnings do not affect the library itself.
 
-The following list is known issues that affect reproducibility:
+There are no known correctness issues with **rfloat**. All reproducibility issues are considered bugs, please report them. Future compiler versions that break these guarantees will also be considered bugs.
+
+The following list documents issues in related systems that may impact reproducibility:
 
 - LLVM does not propagate NaN payloads according to IEEE754.
-    - This is documented, intended behavior by the LLVM project
+    - This is intentional and reasonable behavior documented by the LLVM project
 - Clang targeting PPC64el with `-ffast-math` generates a non-IEEE754 compliant `sqrt()` when inlined into unrolled loops. See [`ppc64el.SqrtRoundingBug`](src/compiler_bug_tests.cpp) test case for details.
     - **rfloat** disables inlining for `std::sqrt` overloads for ppc64.
 
-Unidentified reproducibility issues are considered bugs, please report them.
+> [!NOTE]
+> Floating point code aiming for reproducibility should typically avoid NaNs regardless of documented compiler issues
 
 ## Benchmarks
 
@@ -272,7 +291,7 @@ Floating point reproducibility is extremely challenging to guarantee because it 
 - The compiler must provide a runtime that uses the hardware properly
 - The compiler must not break the floating point semantics of your code when translating it to an executable
 
-All of these layers have reproducibility issues. At the lowest level, The IEEE-754 standard does not specify required behaviors in all situations. For example:
+All of these layers have reproducibility issues. At the lowest level, the IEEE-754 standard does not specify required behaviors in all situations. For example:
 - operations taking multiple inputs do not have a specified result with multiple NaNs
 - bounds for transcendental math functions are difficult to specify as a result of the [Tablemaker's Dilemma](https://perso.ens-lyon.fr/jean-michel.muller/Intro-to-TMD.htm)
 
@@ -301,7 +320,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 This library inspired by Guy Davidson's [P3375R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3375r0.html) proposal and Sherry Ignatchenko's talk on [`Cross-Platform Floating-Point Determinism Out of the Box`](https://github.com/CppCon/CppCon2024/blob/main/Presentations/Cross-Platform_Floating-Point_Determinism_Out_of_the_Box.pdf).
 
-## Resources
+## Additional Resources
 
 [Agner Fog on NaN Payload Propagation](https://grouper.ieee.org/groups/msc/ANSI_IEEE-Std-754-2019/background/nan-propagation.pdf)
 
