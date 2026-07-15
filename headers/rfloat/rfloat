@@ -31,40 +31,8 @@
 #elif defined(__GNUG__)
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
-#elif defined(__clang__)
-#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
-// Clang provides an __arithmetic_fence intrisinc
-// that's intended to do exactly what the OPT_BARRIER macro needs.
-// It usually works, and the Clang frontend will generate separate
-// mul / add IR for the backend along with the appropriate
-// tags indicating that contraction is not allowed.
-// Certain Clang backends (e.g. x86) will ignore the tags and
-// generate FMA instructions, breaking reproducibility.
-// LLVM also provides pragmas that you'd hope could be used
-// to disable contraction, it turns that -ffp-contract=fast
-// will override source pragmas and perform contraction anyway.
-#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#else
-// Contraction might still be done by the backend even if -ffast-math
-// isn't enabled. This is a known Clang bug:
-// https://github.com/llvm/llvm-project/issues/91674
-#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#endif
-#elif defined(__GNUG__)
-#if defined(BARRIER_ASM)
-// GCC has several issues related to the "X" constraint on output
-// variables:
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=94180
-// https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246
-// https://gcc.gnu.org/pipermail/gcc-help/2024-January/143176.html
-// To work around this, we specify the "X" constraint on the input,
-// which seems to work in practice.
-#define OPT_BARRIER(param) __asm__ volatile("" ::"X"(param) :)
-#else
-// This is a much nicer way to express ourselves to the compiler
-#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
-#endif
+#elif defined(__clang__) || defined(__GNUG__)
+#define OPT_BARRIER(param) __asm__ volatile("" : "+m"(param) ::)
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast & /fp:contract for the code that would unsafe if it's enabled
@@ -277,21 +245,21 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator-(const ReproducibleWrapper<T, R> &rhs) const {
-        T result = value - rhs.value;
+        SAFE_BINOP(result, value, rhs.value, -);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator*(const ReproducibleWrapper<T, R> &rhs) const {
-        T result = value * rhs.value;
+        SAFE_BINOP(result, value, rhs.value, *);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
-        T result = value / rhs.value;
+        SAFE_BINOP(result, value, rhs.value, /);
         return ReproducibleWrapper(result);
     }
 
@@ -307,7 +275,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator-=(const ReproducibleWrapper<T, R> &rhs) {
-        T result = value - rhs.value;
+        SAFE_BINOP(result, value, rhs.value, -);
         value = result;
         return *this;
     }
@@ -315,7 +283,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator*=(const ReproducibleWrapper<T, R> &rhs) {
-        T result = value * rhs.value;
+        SAFE_BINOP(result, value, rhs.value, *);
         value = result;
         return *this;
     }
@@ -323,7 +291,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator/=(const ReproducibleWrapper<T, R> &rhs) {
-        T result = value / rhs.value;
+        SAFE_BINOP(result, value, rhs.value, /);
         value = result;
         return *this;
     }
