@@ -32,12 +32,15 @@
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__) || defined(__GNUG__)
-#define OPT_BARRIER(param) __asm__ volatile("" : "+m"(param) ::)
+#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param) ::)
+#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+m"(param) ::)
+#define OPT_BARRIER(param) OPT_BARRIER_LIGHT(param)
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast & /fp:contract for the code that would unsafe if it's enabled
 // on the translation unit
 #define OPT_BARRIER(param)
+#define OPT_BARRIER_HEAVY(param)
 
 #if defined(_M_FP_CONTRACT)
 #define MSVC_CONTRACT
@@ -51,7 +54,13 @@
 #pragma message(                                                               \
         "This compiler may not support reproducible types. Proceed at your own risk.")
 #define OPT_BARRIER(param)
+#define OPT_BARRIER_HEAVY(param)
 #endif /* OPT_BARRIER */
+
+
+#define HEAVY_SAFE_BINOP(result, a, b, op) \
+    T result = (a)op(b);                   \
+    OPT_BARRIER_HEAVY(result);
 
 // Our safety checks are taken care of at the usage site
 #define SAFE_BINOP(result, a, b, op)                                           \
@@ -252,14 +261,14 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator*(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, *);
+        HEAVY_SAFE_BINOP(result, value, rhs.value, *);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R>
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         return ReproducibleWrapper(result);
     }
 
@@ -283,7 +292,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator*=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, *);
+        HEAVY_SAFE_BINOP(result, value, rhs.value, *);
         value = result;
         return *this;
     }
@@ -291,7 +300,7 @@ class ReproducibleWrapper {
     FEATURE_CXX20(constexpr)
     inline ReproducibleWrapper<T, R> &
     operator/=(const ReproducibleWrapper<T, R> &rhs) {
-        SAFE_BINOP(result, value, rhs.value, /);
+        T result = value / rhs.value;
         value = result;
         return *this;
     }
