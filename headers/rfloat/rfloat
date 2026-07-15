@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <fenv.h>
 #include <istream>
 #include <limits>
@@ -42,33 +43,12 @@
 // LLVM also provides pragmas that you'd hope could be used
 // to disable contraction, it turns that -ffp-contract=fast
 // will override source pragmas and perform contraction anyway.
-
-// As a result, we have to fall back to this inline assembly
-// to prevent contraction. We don't have a useful target-specific constraint
-// for x86_64, so we fall back to the generic "X" constraint.
-// Clang requires us to specify the +X constraint on the output to do what
-// we want, meaning the parameter must exist *somewhere* by the time the
-// barrier completes. In practice, this seems to generate an unnecessary
-// store per operation.
-// Mailing lists suggest this should be an "rm" constraint instead,
-// which has the side effect of generating an even more expensive
-// move to a general purpose register instead.
-#define OPT_BARRIER(param) __asm__ volatile("" : "+X"(param)::)
+#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
 #else
 // Contraction might still be done by the backend even if -ffast-math
 // isn't enabled. This is a known Clang bug:
 // https://github.com/llvm/llvm-project/issues/91674
-// However, arithmetic fence optimizes better than the inline ASM alternative.
-// If -ffast-math isn't enabled, we can use the fence to do the actual work and
-// a friendlier assembly constraint that won't introduce a data dependency for
-// the CPU.
-
-// This has the side effect of generating a whole lot of extra stuff for the
-// backend to deal with, inflating compile times. Unfortunately, it's the only
-// way I've found to avoid more serious performance hits in some situations.
-#define OPT_BARRIER(param)                                                     \
-    __arithmetic_fence(param);                                                 \
-    __asm__("" ::"X"(param) :)
+#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
 #elif defined(__GNUG__)
 #if defined(BARRIER_ASM)
