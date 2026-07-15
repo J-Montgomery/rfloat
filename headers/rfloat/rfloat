@@ -1,9 +1,5 @@
 #pragma once
 
-#if defined(__clang__)
-#pragma clang fp contract(off)
-#endif
-
 #include <atomic>
 #include <fenv.h>
 #include <istream>
@@ -44,15 +40,24 @@
 #define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__)
+#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
+#define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
+#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
+#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
+#else
+#define DISABLE_FP_CONTRACT _Pragma("clang fp contract(off)")
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
 #define OPT_BARRIER_LIGHT(param)                                               \
     std::atomic_signal_fence(std::memory_order_seq_cst)
 #define OPT_BARRIER_HEAVY(param)                                               \
     std::atomic_signal_fence(std::memory_order_seq_cst)
+#endif
 #elif defined(__GNUG__)
-#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
-#define OPT_BARRIER_LIGHT(param) __builtin_assoc_barrier(param)
-#define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
+#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_LIGHT(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_HEAVY(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast & /fp:contract for the code that would unsafe if it's enabled
@@ -74,6 +79,10 @@
 #define OPT_BARRIER(param)
 #define OPT_BARRIER_HEAVY(param)
 #endif /* OPT_BARRIER */
+
+#ifndef DISABLE_FP_CONTRACT
+#define DISABLE_FP_CONTRACT
+#endif
 
 #define HEAVY_SAFE_BINOP(result, a, b, op)                                     \
     T result = (a)op(b);                                                       \
