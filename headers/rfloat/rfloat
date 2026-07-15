@@ -53,11 +53,17 @@
     std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
 #elif defined(__GNUG__)
+#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
+#define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
+#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
+#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
+#else
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
 #define OPT_BARRIER_LIGHT(param)                                               \
     std::atomic_signal_fence(std::memory_order_seq_cst)
 #define OPT_BARRIER_HEAVY(param)                                               \
     std::atomic_signal_fence(std::memory_order_seq_cst)
+#endif
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast & /fp:contract for the code that would unsafe if it's enabled
