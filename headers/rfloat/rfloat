@@ -32,8 +32,8 @@
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__) || defined(__GNUG__)
-#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param) ::)
-#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+m"(param) ::)
+#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
+#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+m"(param)::)
 #define OPT_BARRIER(param) OPT_BARRIER_LIGHT(param)
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
@@ -52,14 +52,13 @@
 // There's no standard way to communicate what we want to the compiler
 // so we emit a warning and let the user decide if they want to proceed.
 #pragma message(                                                               \
-        "This compiler may not support reproducible types. Proceed at your own risk.")
+    "This compiler may not support reproducible types. Proceed at your own risk.")
 #define OPT_BARRIER(param)
 #define OPT_BARRIER_HEAVY(param)
 #endif /* OPT_BARRIER */
 
-
-#define HEAVY_SAFE_BINOP(result, a, b, op) \
-    T result = (a)op(b);                   \
+#define HEAVY_SAFE_BINOP(result, a, b, op)                                     \
+    T result = (a)op(b);                                                       \
     OPT_BARRIER_HEAVY(result);
 
 // Our safety checks are taken care of at the usage site

@@ -100,60 +100,41 @@ static void *mempool;
 int main(int argc, char **argv)
 
 {
-    char buf[80];
+    char buf[80] = "100\n";
     int arsize;
     long arsize2d, nreps;
     size_t malloc_arg;
     MEM_T memreq;
 
-    while (1) {
-        if (argc < 2) {
-            printf("Enter array size (q to quit) [100]:  ");
-            [[maybe_unused]] auto _ = fgets(buf, 79, stdin);
-        }
-        if (buf[0] == 'q' || buf[0] == 'Q')
-            break;
-        if (buf[0] == '\0' || buf[0] == '\n')
-            arsize = 100;
-        else
-            arsize = atoi(buf);
-        if (argc > 1)
-            arsize = atoi(argv[1]);
-        arsize /= 2;
-        arsize *= 2;
-        if (arsize < 10) {
-            printf("Too small.\n");
-            if (argc > 1)
-                break;
-            continue;
-        }
-        arsize2d = (long)arsize * (long)arsize;
-        memreq = arsize2d * sizeof(REAL) + (long)arsize * sizeof(REAL) +
-                 (long)arsize * sizeof(int);
-        malloc_arg = (size_t)memreq;
-        if ((MEM_T)malloc_arg != memreq ||
-            (mempool = malloc(malloc_arg)) == NULL) {
-            printf("Not enough memory available for given array size.\n");
-            if (argc > 1)
-                break;
-            continue;
-        }
-        printf("LINPACK benchmark, %s precision.\n", PREC);
-        printf("Machine precision:  %d digits.\n",
-               std::numeric_limits<REAL>::digits10);
-        printf("Array size %d X %d.\n", arsize, arsize);
-        printf("Memory required:  %ldK.\n", (memreq + 512L) >> 10);
-        printf("Average rolled and unrolled performance:\n\n");
-        printf("    Reps Time(s) DGEFA   DGESL  OVERHEAD    KFLOPS\n");
-        printf("----------------------------------------------------\n");
-        nreps = 1;
-        while (linpack(nreps, arsize) < 10.)
-            nreps *= 2;
-        free(mempool);
-        printf("\n");
-        if (argc > 1)
-            break;
+    arsize = atoi(buf);
+    arsize /= 2;
+    arsize *= 2;
+    if (arsize < 10) {
+        printf("Too small.\n");
+        return -1;
     }
+    arsize2d = (long)arsize * (long)arsize;
+    memreq = arsize2d * sizeof(REAL) + (long)arsize * sizeof(REAL) +
+             (long)arsize * sizeof(int);
+    malloc_arg = (size_t)memreq;
+    if ((MEM_T)malloc_arg != memreq || (mempool = malloc(malloc_arg)) == NULL) {
+        printf("Not enough memory available for given array size.\n");
+        if (argc > 1)
+            return -1;
+    }
+    printf("LINPACK benchmark, %s precision.\n", PREC);
+    printf("Machine precision:  %d digits.\n",
+           std::numeric_limits<REAL>::digits10);
+    printf("Array size %d X %d.\n", arsize, arsize);
+    printf("Memory required:  %ldK.\n", (memreq + 512L) >> 10);
+    printf("Average rolled and unrolled performance:\n\n");
+    printf("    Reps Time(s) DGEFA   DGESL  OVERHEAD    KFLOPS\n");
+    printf("----------------------------------------------------\n");
+    nreps = 1;
+    while (linpack(nreps, arsize) < 10.)
+        nreps *= 2;
+    free(mempool);
+    printf("\n");
     return 0;
 }
 
