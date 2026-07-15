@@ -40,7 +40,7 @@
 #define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__)
-#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
+#if defined(__FAST_MATH__)
 #define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
 #define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
 #define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
@@ -53,7 +53,7 @@
     std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
 #elif defined(__GNUG__)
-#if defined(BARRIER_IMPL_ASM) || defined(__FAST_MATH__)
+#if defined(__FMA__)
 #define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
 #define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
 #define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
