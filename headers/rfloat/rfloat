@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(__clang__)
+#pragma clang fp contract(off)
+#endif
+
 #include <atomic>
 #include <fenv.h>
 #include <istream>
@@ -26,15 +30,29 @@
 // For ARM32, we would need to use either the "t" or "w" constraint depending
 // on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
+#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+w"(param)::)
+#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+w"(param)::)
 #elif defined(__clang__)
-#define OPT_BARRIER(param) __arithmetic_fence(param)
+#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_LIGHT(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_HEAVY(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
 #elif defined(__GNUG__)
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
+#define OPT_BARRIER_LIGHT(param) __builtin_assoc_barrier(param)
+#define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
 #endif
-#elif defined(__clang__) || defined(__GNUG__)
-#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
-#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+m"(param)::)
-#define OPT_BARRIER(param) OPT_BARRIER_LIGHT(param)
+#elif defined(__clang__)
+#define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_LIGHT(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
+#define OPT_BARRIER_HEAVY(param)                                               \
+    std::atomic_signal_fence(std::memory_order_seq_cst)
+#elif defined(__GNUG__)
+#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
+#define OPT_BARRIER_LIGHT(param) __builtin_assoc_barrier(param)
+#define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
 // /fp:fast & /fp:contract for the code that would unsafe if it's enabled
