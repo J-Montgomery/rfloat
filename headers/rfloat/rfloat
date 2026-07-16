@@ -13,6 +13,11 @@
 #include <stdfloat>
 #endif /* ENABLE_STDFLOAT */
 
+#if (defined(__clang__) || defined(__GNUG__))
+#pragma GCC push_options
+#pragma GCC optimize("fp-contract=off")
+#endif
+
 // The OPT_BARRIER macro acts as a barrier preventing the
 // compiler/optimizer from optimizing across it, and forces
 // the compiler to have computed the value of param by the
@@ -26,43 +31,30 @@
 // For ARM32, we would need to use either the "t" or "w" constraint depending
 // on whether the value is 32 or 64 bits and whether Thumb1 is enabled.
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
-#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+w"(param)::)
-#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+w"(param)::)
 #elif defined(__clang__)
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_LIGHT(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_HEAVY(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
 #elif defined(__GNUG__)
 #define OPT_BARRIER(param) __builtin_assoc_barrier(param)
-#define OPT_BARRIER_LIGHT(param) __builtin_assoc_barrier(param)
-#define OPT_BARRIER_HEAVY(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__)
 #if defined(__FAST_MATH__)
+// Clang annoyingly doesn't respect pragmas -ffast-math is set.
+// If this is the case, we have to fallback to this awful
+// to force the compiler not to contract across the barrier
+// This has the side effect of generating a load/store
+// and disabling loop unrolling, but at least it's correct
 #define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
-#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
-#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
 #else
 #define DISABLE_FP_CONTRACT _Pragma("clang fp contract(off)")
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_LIGHT(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_HEAVY(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
 #elif defined(__GNUG__)
 #if defined(__FMA__)
+// GCC for whatever reason doesn't respect atomic_signal_fence() as an
+// associative barrier. Luckily the codegen for this is fine
 #define OPT_BARRIER(param) __asm__ volatile("" : "+x"(param)::)
-#define OPT_BARRIER_LIGHT(param) __asm__ volatile("" : "+x"(param)::)
-#define OPT_BARRIER_HEAVY(param) __asm__ volatile("" : "+x"(param)::)
 #else
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_LIGHT(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
-#define OPT_BARRIER_HEAVY(param)                                               \
-    std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
 #elif defined(_MSC_VER)
 // We can't tell MSVC what we want it to do, so instead we disable
@@ -83,16 +75,11 @@
 #pragma message(                                                               \
     "This compiler may not support reproducible types. Proceed at your own risk.")
 #define OPT_BARRIER(param)
-#define OPT_BARRIER_HEAVY(param)
 #endif /* OPT_BARRIER */
 
 #ifndef DISABLE_FP_CONTRACT
 #define DISABLE_FP_CONTRACT
 #endif
-
-#define HEAVY_SAFE_BINOP(result, a, b, op)                                     \
-    T result = (a)op(b);                                                       \
-    OPT_BARRIER_HEAVY(result);
 
 // Our safety checks are taken care of at the usage site
 #define SAFE_BINOP(result, a, b, op)                                           \
@@ -175,17 +162,19 @@ class ReproducibleWrapper {
   public:
     using underlying_type = T;
 
-    constexpr ReproducibleWrapper(const T &val) : value(val) {}
-    constexpr ReproducibleWrapper() = default;
+    constexpr __attribute__((always_inline)) ReproducibleWrapper(const T &val)
+        : value(val) {}
+    constexpr __attribute__((always_inline)) ReproducibleWrapper() = default;
 
     template <rmath::RoundingMode R2>
-    constexpr ReproducibleWrapper<T, R2> &operator=(T val) {
+    constexpr __attribute__((always_inline)) ReproducibleWrapper<T, R2> &
+    operator=(T val) {
         value = val;
         return *this;
     }
 
     template <rmath::RoundingMode R2>
-    constexpr ReproducibleWrapper<T, R> &
+    constexpr __attribute__((always_inline)) ReproducibleWrapper<T, R> &
     operator=(const ReproducibleWrapper<T, R2> &other) {
         value = other.value;
         return *this;
@@ -194,7 +183,8 @@ class ReproducibleWrapper {
     // Enable explicit upcasts
     template <typename T2, rmath::RoundingMode R2,
               typename = typename std::enable_if<sizeof(T2) >= sizeof(T)>::type>
-    explicit constexpr inline operator ReproducibleWrapper<T2, R2>() const {
+    explicit constexpr __attribute__((always_inline))
+    operator ReproducibleWrapper<T2, R2>() const {
         return ReproducibleWrapper<T2, R2>(static_cast<T2>(value));
     }
 
@@ -206,99 +196,108 @@ class ReproducibleWrapper {
     // operator float() const = delete;
     // operator double() const = delete;
 
-    constexpr inline T underlying_value() const { return value; }
+    constexpr __attribute__((always_inline)) T underlying_value() const {
+        return value;
+    }
 
-    constexpr inline double fp64() const { return static_cast<double>(value); }
+    constexpr __attribute__((always_inline)) double fp64() const {
+        return static_cast<double>(value);
+    }
 
     template <typename T2 = T, typename = typename std::enable_if_t<
                                    std::is_same<T2, float>::value>>
-    constexpr inline T2 fp32() const {
+    constexpr __attribute__((always_inline)) T2 fp32() const {
         return value;
     }
 
 #if ENABLE_STDFLOAT
     template <typename T2 = T, typename = typename std::enable_if_t<
                                    std::is_same<T2, std::float16_t>::value>>
-    constexpr inline T2 fp16() const {
+    constexpr __attribute__((always_inline)) T2 fp16() const {
         return value;
     }
 #endif /* ENABLE_STDFLOAT */
 
 #if __cplusplus >= 202002L
-    constexpr inline auto
+    constexpr __attribute__((always_inline)) auto
     operator<=>(const ReproducibleWrapper<T, R> &rhs) const {
         return value <=> rhs.value;
     };
 #endif /* __cplusplus >= 202002L */
 
     // Comparison operators
-    constexpr inline bool
+    constexpr __attribute__((always_inline)) bool
     operator<(const ReproducibleWrapper<T, R> &rhs) const {
         return value < rhs.value;
     };
 
-    constexpr inline bool
+    constexpr __attribute__((always_inline)) bool
     operator>(const ReproducibleWrapper<T, R> &rhs) const {
         return value > rhs.value;
     };
 
-    constexpr inline bool
+    constexpr __attribute__((always_inline)) bool
     operator<=(const ReproducibleWrapper<T, R> &rhs) const {
         return value <= rhs.value;
     };
 
-    constexpr inline bool
+    constexpr __attribute__((always_inline)) bool
     operator>=(const ReproducibleWrapper<T, R> &rhs) const {
         return value >= rhs.value;
     };
 
-    constexpr inline bool
+    constexpr __attribute__((always_inline)) bool
     operator==(const ReproducibleWrapper<T, R> &rhs) const {
         return value == rhs.value;
     };
 
-    constexpr inline auto
+    constexpr __attribute__((always_inline)) auto
     operator!=(const ReproducibleWrapper<T, R> &rhs) const {
         return value != rhs.value;
     };
 
     // Unary Arithmetic operators
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> operator+() const {
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> operator+() const {
+        DISABLE_FP_CONTRACT
         SAFE_UNOP(result, value, +);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> operator-() const {
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> operator-() const {
+        DISABLE_FP_CONTRACT
         SAFE_UNOP(result, value, -);
         return ReproducibleWrapper(result);
     }
 
     // Binary Arithmetic operators
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R>
+    __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator+(const ReproducibleWrapper<T, R> &rhs) const {
+        DISABLE_FP_CONTRACT
         SAFE_BINOP(result, value, rhs.value, +);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R>
+    __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator-(const ReproducibleWrapper<T, R> &rhs) const {
+        DISABLE_FP_CONTRACT
         SAFE_BINOP(result, value, rhs.value, -);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R>
+    __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator*(const ReproducibleWrapper<T, R> &rhs) const {
-        HEAVY_SAFE_BINOP(result, value, rhs.value, *);
+        DISABLE_FP_CONTRACT
+        SAFE_BINOP(result, value, rhs.value, *);
         return ReproducibleWrapper(result);
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R>
+    __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator/(const ReproducibleWrapper<T, R> &rhs) const {
         T result = value / rhs.value;
         return ReproducibleWrapper(result);
@@ -306,32 +305,36 @@ class ReproducibleWrapper {
 
     // Arithmetic assignment operators
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> &
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> &
     operator+=(const ReproducibleWrapper<T, R> &rhs) {
+        DISABLE_FP_CONTRACT
         SAFE_BINOP(result, value, rhs.value, +);
         value = result;
         return *this;
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> &
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> &
     operator-=(const ReproducibleWrapper<T, R> &rhs) {
+        DISABLE_FP_CONTRACT
         SAFE_BINOP(result, value, rhs.value, -);
         value = result;
         return *this;
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> &
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> &
     operator*=(const ReproducibleWrapper<T, R> &rhs) {
-        HEAVY_SAFE_BINOP(result, value, rhs.value, *);
+        DISABLE_FP_CONTRACT
+        SAFE_BINOP(result, value, rhs.value, *);
         value = result;
         return *this;
     }
 
     FEATURE_CXX20(constexpr)
-    inline ReproducibleWrapper<T, R> &
+    __attribute__((always_inline)) ReproducibleWrapper<T, R> &
     operator/=(const ReproducibleWrapper<T, R> &rhs) {
+        DISABLE_FP_CONTRACT
         T result = value / rhs.value;
         value = result;
         return *this;
@@ -343,31 +346,31 @@ class ReproducibleWrapper {
     // first. This should be essentially free, and the type overloads
     // will ensure the operation is done safely.
     FEATURE_CXX20(constexpr)
-    friend inline ReproducibleWrapper<T, R>
+    friend __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator+(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) + rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline ReproducibleWrapper<T, R>
+    friend __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator-(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) - rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline ReproducibleWrapper<T, R>
+    friend __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator*(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) * rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline ReproducibleWrapper<T, R>
+    friend __attribute__((always_inline)) ReproducibleWrapper<T, R>
     operator/(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) / rhs;
     }
 
 #if __cplusplus >= 202002L
-    constexpr friend inline auto
+    constexpr friend __attribute__((always_inline)) auto
     operator<=>(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) <=> rhs;
     };
@@ -375,38 +378,38 @@ class ReproducibleWrapper {
 
     // Relational operators
     FEATURE_CXX20(constexpr)
-    friend inline bool operator==(const T &lhs,
-                                  const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator==(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) == rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline bool operator!=(const T &lhs,
-                                  const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator!=(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) != rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline bool operator<=(const T &lhs,
-                                  const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator<=(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) <= rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline bool operator>=(const T &lhs,
-                                  const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator>=(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) >= rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline bool operator>(const T &lhs,
-                                 const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator>(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) > rhs;
     }
 
     FEATURE_CXX20(constexpr)
-    friend inline bool operator<(const T &lhs,
-                                 const ReproducibleWrapper<T, R> &rhs) {
+    friend __attribute__((always_inline)) bool
+    operator<(const T &lhs, const ReproducibleWrapper<T, R> &rhs) {
         return ReproducibleWrapper(lhs) < rhs;
     }
 
@@ -437,6 +440,10 @@ struct std::hash<rstd::ReproducibleWrapper<T>> : public std::hash<T> {
 #ifdef MSVC_CONTRACT
 #pragma float_control(pop)
 #undef MSVC_CONTRACT
+#endif
+
+#if (defined(__clang__) || defined(__GNUG__))
+#pragma GCC pop_options
 #endif
 
 // It'd be nice to use C++20 template aliases here,
