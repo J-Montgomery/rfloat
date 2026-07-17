@@ -13,6 +13,10 @@
 
 #include <iomanip>
 
+#if defined(__clang__) && (__FINITE_MATH_ONLY__)
+#pragma clang diagnostic ignored "-Wnan-infinity-disabled"
+#endif
+
 template <typename T, std::size_t InputSize, std::size_t OutputSize>
 class TestDataGenerator {
   public:
@@ -139,7 +143,9 @@ std::vector<std::array<T, InputSize>> uniform_random_args(std::size_t count, typ
     for (std::size_t i = 0; i < count; ++i) {
         std::array<T, InputSize> input;
         auto result = generate_uniform_random_list<T>(min, max, InputSize);
-        std::copy(result.begin(), result.end(), input.begin());
+        for (std::size_t i = 0; i < InputSize; ++i) {
+            input[i] = result[i];
+        }
         inputs.push_back(input);
     }
     return inputs;
@@ -152,7 +158,9 @@ std::vector<std::array<T, InputSize>> normal_random_args(std::size_t count, type
     for (std::size_t i = 0; i < count; ++i) {
         std::array<T, InputSize> input;
         auto result = generate_normal_random_list<T>(mean, stddev, InputSize);
-        std::copy(result.begin(), result.end(), input.begin());
+        for (std::size_t i = 0; i < InputSize; ++i) {
+            input[i] = result[i];
+        }
         inputs.push_back(input);
     }
     return inputs;
@@ -165,7 +173,9 @@ std::vector<std::array<T, InputSize>> selected_random_args(const std::vector<T>&
     for (std::size_t i = 0; i < count; ++i) {
         std::array<T, InputSize> input;
         auto result = generate_selected_random_list<T>(collection, InputSize);
-        std::copy(result.begin(), result.end(), input.begin());
+        for (std::size_t i = 0; i < InputSize; ++i) {
+            input[i] = result[i];
+        }
         inputs.push_back(input);
     }
     return inputs;

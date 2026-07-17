@@ -20,9 +20,13 @@ FetchContent_MakeAvailable(doctest)
 option(RFLOAT_BENCHMARKS "Enable benchmarks" OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+find_program(CLANG_FORMAT_EXE NAMES clang-format clang-format-24 clang-format-22 clang-format-20 clang-format-18 clang-format-16 clang-format-14)
 file(GLOB_RECURSE ALL_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/headers/*)
-add_custom_target(format COMMAND clang-format-16 -i ${ALL_SOURCE_FILES})
-
+add_custom_target(format
+    COMMAND clang-format -i ${ALL_SOURCE_FILES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
+)
 # rfloat
 add_library(rfloat INTERFACE)
 target_include_directories(rfloat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/headers/rfloat)
