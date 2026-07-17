@@ -48,6 +48,18 @@
         }
     },
     {
+        "name": "benchmark_limit_ops",
+        "displayName": "Benchmarking config for Clang and GCC with optimizations excluded",
+        "description": "Enables apples-to-apples benchmark testing on unixes",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "Debug",
+            "COMPILE_OPTIONS": "-O2;-pedantic;-march=native;-fno-associative-math;-ffp-contract=off;-DRSTD_NONDETERMINISM;-DRFLOAT_BENCHMARKS"
+        },
+        "environment": {
+            "CTEST_OUTPUT_ON_FAILURE": "1"
+        }
+    },
+    {
         "name": "qemu",
         "displayName": "Flags for QEMU testing",
         "description": "Enables unsafe optimizations for reproducibility testing on unixes",

@@ -146,16 +146,14 @@ This implementation is faster and has less rounding error. Unfortunately, compil
 
 The default strategy inserts a compiler intrinsic between potentially problematic expressions. This prevents some codegen options that might harm reproducibility like fma contraction without additional side effects. This method has negligible overhead at both compile time and runtime.
 
-The second strategy uses inline assembly to prevent the compiler from reordering or fusing operations that could lead to reproducibility issues by forcing the compiler to spill intermediate results into registers. This is a no-op on GCC. On clang, an additional memory store occurs. This approach may also lead to increased compile times. Defining the `BARRIER_IMPL_ASM` at compile time will manually enable it.
-
-GCC provides a functioning barrier intrinsic (`__builtin_assoc_barrier`) that is used by default.
+The second strategy uses inline assembly to prevent the compiler from reordering or fusing operations that could lead to reproducibility issues by forcing the compiler to spill intermediate results into registers. 
 
 MSVC does not support inline assembly blocks or optimization barriers. Instead, `/fp:contract` is simply disabled for the implementation class. This has no overhead in most cases, but does produce in an additional call per operation when mixing reproducible types with non-reproducible types inside a single translation unit. Code that does not mix non-reproducible types does not incur additional overhead.
 
-**rfloat** on Clang resorts to a combination of barrier intrinsics and inline assembly to balance reproducibility and performance. The barrier intrinsic available with Clang (`__arithmetic_fence`) is broken on [x86 and x64 platforms](https://github.com/llvm/llvm-project/issues/91674), but can be combined with inline assembly approach to approach full performance. If `-ffast-math` is set, **rfloat** has to fallback to the inline assembly strategy discussed above to ensure reproducibility.
+If `-ffast-math` is set, **rfloat** has to fallback to the inline assembly strategy discussed above to ensure reproducibility.
 
 > [!NOTE]
-> **rfloat** can prevent some compiler transformations required for autovectorization that cannot be applied universally. This has not been observed to significantly impact performance in practice. 
+> **rfloat** may prevent some compiler transformations required for autovectorization. This has not been observed to significantly impact performance in practice, and effort has been made to allow loop unrolling for autovectorization.
 
 ### Configuration Macros
 
@@ -163,7 +161,6 @@ MSVC does not support inline assembly blocks or optimization barriers. Instead, 
 |------------|---------|---------|
 | ENABLE_STDFLOAT | Off | Enables `<stdfloat>` support |
 | RSTD_NONDETERMINISM | Off | Enables math functions that are known to be nondeterministic on some platforms |
-| BARRIER_IMPL_ASM | Auto | Uses an inline assembly barrier instead of compiler intrinsics |
 
 ## Supported Platforms
 
@@ -216,10 +213,7 @@ The following platforms are all continuously tested via QEMU.
 ## Issues
 
 - MSVC with `/fp:contract` results in additional overhead when reproducible and non-reproducible types are mixed inside a single translation unit because the compiler is forced to convert every operation into a function call. Suggestions for improvement are welcome.
-- Clang incurs unnecessary overhead on x64.
-    - This overhead results from the need to work around Clang's broken `__arithmetic_fence()` intrinsic. The compiler frontend generates the correct IR for this intrinsic and tells the backend that contraction is disabled. However, the
-    backend will sometimes ignore this information and generate contractions anyway. The Clang `-fprotect-parens` flag is broken in the same situations because of a shared implementation. Source level pragmas cannot be used to work around this problem either, as Clang ignores source code directives for floating point accuracy that conflict with build flags. Additionally, while the `__FAST_MATH__` macro is defined when `-ffast-math` is set, there is no compiler macro to detect `-ffp-contract=fast` and generate a build error. Since there's no reliable way to detect dangerous build flags, **rfloat** is forced to implement operations in ways that incur minor overhead on Clang. The overhead is increased for code used in translation units that set `-ffast-math`.
-- Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), code that sets `BARRIER_IMPL_ASM` may have issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
+- Due to [GCC Issue #71246](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=71246), rfloat may have issues with certain combinations of compiler flags and platforms that have not been detected despite extensive testing.
 - Test code uses infinities and NaNs even under -ffast-math, causing potential undefined behavior and generating diagnostic warnings on Clang-18+.
     - **rfloat** works correctly even in this scenario despite the warnings. These warnings do not affect the library itself.
 
@@ -237,7 +231,7 @@ The following list documents issues in related systems that may impact reproduci
 
 ## Benchmarks
 
-A whetstone benchmark is provided as a basic example and can be built by enabling the `RFLOAT_BENCHMARKS` option in CMake.
+A whetstone benchmark is provided as a basic example and can be built by enabling the `RFLOAT_BENCHMARKS` option in CMake. "Comparable opts" tests listed below exclude the two optimizations that are prohibited by rfloat, `-fno-associative-math` and `-ffp-contract=off`. Tests results are reported after initial run warmups.
 
 > [!NOTE]
 > **rfloat** is inherently sensitive to source code, toolchain and platform support for performance.
@@ -246,41 +240,35 @@ A whetstone benchmark is provided as a basic example and can be built by enablin
 
 ### Ansibench whetstone on x64:
 
-No performance differential observed on `-O2` at 1000000 iterations.
+No performance differential observed on `-O2` at 1000000 iterations. 
 
-| Compiler | double | rdouble |
-|----------|--------|---------|
-| Clang 16 | 5882.4 MWIPS | 5882.4 MWIPS |
-| GCC 11   | 5882.4 MWIPS | 5882.4 MWIPS |
-
-6% performance differential observed on `-O3 -ffast-math -funsafe-math-optimizations` at 1000000 iterations. Note that the performance of **rfloat** has not decreased, but additional optimizations have benefited the baseline implementation, at the cost of non-reproducible outputs.
-
-| Compiler | double | rdouble |
-|----------|--------|---------|
-| Clang 16 | 6250 MWIPS | 5882.4 MWIPS |
-| GCC 11   | 6250 MWIPS | 5882.4 MWIPS |
+| Compiler | double | double comparable ops | rdouble |
+|----------|--------|---------|---------|
+| Clang 18 | 5882.4 MWIPS | 5882.4 MWIPS | 5882.4 MWIPS |
+| GCC 13 | 5882.4 MWIPS | 5882.4 MWIPS | 5882.4 MWIPS |
 
 ### Ansibench linpack on x64:
-All numbers in GFLOPS, rounded to 2 decimal digits.
 
-#### GCC-11 -O2
-| Size | double | rdouble | Slowdown relative to double |
-|----------|--------|---------|----|
-| 32k | 5.48 | 5.47 | 0.18% |
-| 64k | 5.47 | 5.48 | -0.10% |
-| 128k | 5.48 | 5.52 | -0.64% |
-| 256k | 5.47 | 5.51 | -0.66% |
+All numbers in GFLOPS, rounded to 2 decimal digits. Note that linpack functions as a worst-case impact benchmark and depends on tight loop whose performance is heavily affected by contraction and reassociation optimizations.
 
-#### Clang-16 -O2
+#### GCC-13 -O2
+| Size | double | double comparable opts | rdouble | Slowdown relative to double | comparable ops |
+|----------|--------|---------|----|----|----|
+| 32k | 7.80 | 5.52 | 6.29 | 19.4% | -13.9% |
+| 64k | 7.70 | 5.52 | 6.27 | 18.6% | -13.5% |
+| 128k | 7.66 | 5.48 | 6.20 | 19.1% | -13.1% |
+| 256k | 7.74 | 5.48 | 6.30 | 18.6% | -15.0% |
 
-| Size | double | rdouble | Slowdown relative to double |
-|----------|--------|---------|----|
-| 32k | 7.69  | 6.29 | 22.25% |
-| 64k | 7.71 | 6.30 | 22.38% |
-| 128k | 7.68 | 6.30| 21.90% |
-| 256k | 7.70 | 6.18 | 24.59% |
+#### Clang-18 -O2
 
-The Clang slowdown results from Clang emitting unnecessary memory stores after some floating point operation and entirely eliding some functions in the benchmark. This is not representative of typical overheads, but is included to illustrate what may occur.
+| Size | double | double comparable opts | rdouble | Slowdown relative to double | comparable opts |
+|----------|--------|---------|----|----|----|
+| 32k | 7.89 | 7.03 | 7.02 | 11.0% | 1.42% |
+| 64k | 7.89 | 7.01 | 6.99 | 11.4% | 0.28% |
+| 128k | 7.77 | 6.97 | 7.04 | 9.40% | -1.00% |
+| 256k | 7.81 | 7.00 | 7.04 | 9.86% | -0.57% |
+
+Clang produces essentially identical code for rdouble and double with comparable options. I'm not sure why the comparable numbers for g++-13 are lower than rdouble, but my speculation is that it's not unrolling the inner loops.
 
 ## Reproducibility Guarantees
 

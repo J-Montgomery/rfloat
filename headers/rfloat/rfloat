@@ -23,8 +23,14 @@
 // compiler/optimizer from optimizing across it, and forces
 // the compiler to have computed the value of param by the
 // time the macro ends.
-#if defined(__aarch64__) && (defined(__clang__) || defined(__GNUG__))
-#if defined(BARRIER_IMPL_ASM)
+#if defined(_MSC_VER)
+// We can't tell MSVC what we want it to do, so instead we disable
+// /fp:fast & /fp:contract for the code that would unsafe if it's enabled
+// on the translation unit
+#define OPT_BARRIER(param)
+#define FORCE_INLINE __forceinline
+#elif defined(__aarch64__)
+#if defined(__GNUG__)
 // For AArch64, we can use the "w" register constraint to specify
 // that the parameter must exist in a floating point or SVE register
 // somewhere. The compilers are smart enough to do the right thing
@@ -34,8 +40,6 @@
 #define OPT_BARRIER(param) __asm__ volatile("" : "+w"(param)::)
 #elif defined(__clang__)
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
-#elif defined(__GNUG__)
-#define OPT_BARRIER(param) __builtin_assoc_barrier(param)
 #endif
 #elif defined(__clang__)
 #if defined(__FAST_MATH__)
@@ -57,12 +61,6 @@
 #else
 #define OPT_BARRIER(param) std::atomic_signal_fence(std::memory_order_seq_cst)
 #endif
-#elif defined(_MSC_VER)
-// We can't tell MSVC what we want it to do, so instead we disable
-// /fp:fast & /fp:contract for the code that would unsafe if it's enabled
-// on the translation unit
-#define OPT_BARRIER(param)
-#define FORCE_INLINE __forceinline
 #else
 // There's no standard way to communicate what we want to the compiler
 // so we emit a warning and let the user decide if they want to proceed.
